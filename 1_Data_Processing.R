@@ -46,10 +46,6 @@ head(ptax_data)
 ##########################################################################################################
 
 
-
-
-
-
 ################################################COFFE PRICE###############################################
 # Load required libraries
 library(readxl)
@@ -58,8 +54,8 @@ library(lubridate)
 
 # --- Load raw Excel files ---
 # The skip = 3 is neccesary as the value start from the 3rd row
-arabica_raw <- read_excel("Raw_Data/Arabica Coffe Price Index.xlsx", skip = 3)
-robusta_raw <- read_excel("Raw_Data/Robusta Coffe Price Index.xlsx", skip = 3)
+arabica_raw <- read_excel("Raw_Data/Coffee_Data/Arabica Coffe Price Index.xlsx", skip = 3)
+robusta_raw <- read_excel("Raw_Data/Coffee_Data/Robusta Coffe Price Index.xlsx", skip = 3)
 
 # --- Clean Arabica ---
 arabica <- arabica_raw %>%
@@ -90,6 +86,19 @@ combined_df <- read.csv("Raw_Data/combined_coffee_price_index.csv", stringsAsFac
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 ################################################COFFE PRICE###############################################
 
 # Load required libraries
@@ -101,7 +110,7 @@ library(quantmod)
 # --- Step 1: Load and Prepare Coffee Data ---
 
 # Load coffee price data
-coffee_data <- read_csv("Raw_Data/combined_coffee_price_index.csv")
+coffee_data <- read_csv("Raw_Data/Coffee_Data/combined_coffee_price_index.csv")
 
 # Convert Date column to Date class
 coffee_data$Date <- as.Date(coffee_data$Date)
