@@ -6,7 +6,7 @@
 library(readr)
 library(dplyr)
 
-# Read your CSV file (replace with your actual file path)
+# Read  CSV file
 coffee_data <- read_csv("Raw_Data/combined_coffee_price_index.csv")
 
 # Convert Date to Date class
@@ -39,7 +39,7 @@ robusta_ts <- ts(coffee_data_aligned$Price_Robusta,
                  frequency = 365)
 
 # Save a wider plot as PNG
-png("Processed_Data/coffee_prices_wide_plot.png", width = 1200, height = 600)
+png("Processed_Data/coffee_prices_plot.png", width = 1200, height = 600)
 
 # Plot Arabica prices
 plot(arabica_ts, type = "l", col = "darkgreen", lwd = 2,
@@ -59,12 +59,6 @@ dev.off()
 
 ##########################################################################################################
 
-
-# Assuming your data frame is called 'coffee_data' 
-# and it has columns: Date, Price_Arabica, Price_Robusta
-
-# First, convert the price columns into time series objects (if not already)
-# For example, starting in 2001, daily frequency (adjust freq as needed)
 
 # Load libraries
 library(readr)
@@ -231,6 +225,3 @@ plot(window(robusta_weekly_log_returns,
      xlab = "Date",
      col = "blue",
      lwd = 2)
-
-
-
