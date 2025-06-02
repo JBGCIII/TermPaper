@@ -6,13 +6,13 @@ library(readr)
 library(urca)
 
 # Load the logged data
-log_data <- read_csv("Processed_Data/Log_Data.csv")
+Log_and_Log_Returns_Data <- read_csv("Processed_Data/Log_and_Log_Returns_Data.csv")
 
-# Example: ADF test on log_Price_Arabica
-arabica_series <- log_data$log_Price_Arabica 
-robusta_series <- log_data$log_Price_Robusta 
-exchange_rate_series <- log_data$log_PTAX 
-coffe_futures_series <- log_data$log_Close_USD_60kg
+# ADF test on logged data
+arabica_series <- Log_and_Log_Returns_Data$log_Price_Arabica 
+robusta_series <- Log_and_Log_Returns_Data$log_Price_Robusta 
+exchange_rate_series <- Log_and_Log_Returns_Data$log_PTAX 
+coffe_futures_series <- Log_and_Log_Returns_Data$log_Close_USD_60kg
 
 # Run ADF test with no constant or trend, 0 lag.
 DF_arabica <- ur.df(arabica_series, type = "none", lags = 0)
@@ -27,10 +27,26 @@ summary(DF_Exhange_Rate)# 0.9163 > -1.95, fail to reject the null hypothesis.
 summary(DF_Coffe_Futures) # 1.1233 > -1.95, fail to reject the null hypothesis.
 
 # The p-value indicates that none of the series are stationary at conventional significance levels 
+# Instead of using lags for daily data which would require a large ammount of lags I decided to calculate
+# log retuns instead
 
+# ADF test on log returns
+log_return_arabica_series <- Log_and_Log_Returns_Data$ret_Arabica 
+log_return_robusta_series <- Log_and_Log_Returns_Data$ret_Close_USD_60kg 
+log_return_exchange_rate_series <- Log_and_Log_Returns_Data$ret_PTAX 
+log_return_coffe_futures_series <- Log_and_Log_Returns_Data$ret_Close_USD_60kg
 
+# Run ADF test with no constant or trend, 0 lag.
+DF_log_return_arabica <- ur.df(log_return_arabica_series, type = "none", lags = 0)
+DF_log_return_robusta <- ur.df(log_return_robusta_series, type = "none", lags = 0)
+DF_log_return_Exhange_Rate <- ur.df(log_return_exchange_rate_series, type = "none", lags = 0)
+DF_log_return_Coffe_Futures <- ur.df(log_return_coffe_futures_series, type = "none", lags = 0)
 
-
+# Show summary
+summary(DF_log_return_arabica) # -76.43 < -1.95,  strongly reject the null hypothesis.
+summary(DF_log_return_robusta) #−75.44 < -1.95, strongly reject the null hypothesis.
+summary(DF_log_return_Exhange_Rate)# -70.5777 < -1.95, strongly reject the null hypothesis.
+summary(DF_log_return_Coffe_Futures) # -70.5777 < -1.95, strongly reject the null hypothesis.
 
 
 
