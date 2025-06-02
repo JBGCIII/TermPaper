@@ -132,3 +132,13 @@ plot(window(arabica_weekly_log_returns,
 
 abline(v = as.Date("2021-07-20"), col = "blue", lty = 2, lwd = 2)
 text(as.Date("2021-07-20"), 0.1, "Frost Warning", pos = 4, col = "blue")
+
+
+
+
+
+
+
+
+
+

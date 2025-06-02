@@ -7,7 +7,7 @@ library(readr)
 library(dplyr)
 
 # Read  CSV file
-coffee_data <- read_csv("Raw_Data/combined_coffee_price_index.csv")
+coffee_data <- read_csv("Raw_Data/Coffe_Data_Set.csv")
 
 # Convert Date to Date class
 coffee_data <- coffee_data %>%
@@ -58,6 +58,9 @@ legend("topright", legend = c("Arabica", "Robusta"),
 dev.off()
 
 ##########################################################################################################
+
+
+
 
 
 # Load libraries

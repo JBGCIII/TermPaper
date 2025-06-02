@@ -1,5 +1,5 @@
 ##########################################################################################################
-#                                         DATA PROCESSING
+#                                         DATA SET CREATION
 ##########################################################################################################
 
 ##########################################EXCHANGE-RATE-DATA#################################################
@@ -42,6 +42,45 @@ ptax_data <- bind_rows(all_data) %>%
 write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.names = FALSE)
 
 head(ptax_data)
+
+
+##########################################COFFE FUTURES FOR ARABICA IN USD/60KG##############################################
+
+
+library(quantmod)
+
+# Define date range
+start_date <- as.Date("2001-01-01")
+end_date <- Sys.Date()
+
+# Download Arabica futures data (ticker: KC=F)
+getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
+
+# Extract the data object
+arabica_xts <- `KC=F`
+
+# Remove rows with NA in Close price
+arabica_xts <- na.omit(arabica_xts)
+
+# Extract Date and Close price (4th column)
+arabica_df <- data.frame(
+  Date = index(arabica_xts),
+  Close = as.numeric(arabica_xts[, "KC=F.Close"])
+)
+
+# Convert Close price from cents/lb to USD per 60-kg bag
+arabica_df$Close_USD_60kg <- arabica_df$Close * 0.01 * 132.277
+
+# Keep only Date and converted Close
+arabica_simple <- arabica_df[, c("Date", "Close_USD_60kg")]
+
+# Save to CSV
+write.csv(arabica_simple, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
+
+
+
+
+
 
 ##################################################WEATHER ############################################
 # Load libraries
@@ -120,6 +159,7 @@ write.csv(combined_df, "Raw_Data/Coffee_Data/combined_coffee_price_index.csv", r
 
 
 ##############################################COMBINING DATA SET#########################################
+
 # Load necessary packages
 library(dplyr)
 library(lubridate)
@@ -133,13 +173,17 @@ weather_data <- read.csv("Raw_Data/Weather_Data/weather.csv", stringsAsFactors =
   mutate(Date = as.Date(Date)) %>%
   select(Date, Temp_Max, Temp_Min, Humidity, Solar_Radiation, Precipitation_mm)
 
-coffee_data <- read.csv("Raw_Data/Coffe_Data/combined_coffee_price_index.csv", stringsAsFactors = FALSE) %>%
+coffee_data <- read.csv("Raw_Data/Coffee_Data/combined_coffee_price_index.csv", stringsAsFactors = FALSE) %>%
   mutate(Date = as.Date(Date)) %>%
   select(Date, Price_Arabica, Price_Robusta)
+
+arabica_simple <- read.csv("Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", stringsAsFactors = FALSE) %>%
+  mutate(Date = as.Date(Date))  # Ensure Date is properly parsed
 
 # 2. Merge all datasets by Date (inner join to keep only dates present in all datasets)
 merged_data <- ptax_data %>%
   inner_join(coffee_data, by = "Date") %>%
+  inner_join(arabica_simple, by = "Date") %>%
   inner_join(weather_data, by = "Date") %>%
   arrange(Date)
 
@@ -147,6 +191,4 @@ merged_data <- ptax_data %>%
 head(merged_data)
 
 # 4. Save combined dataset
-write.csv(merged_data, "Raw_Data/Coffe_Data_Set.csv", row.names = FALSE)
-
-
+write.csv(merged_data, "Raw_Data/Coffee_Data_Set.csv", row.names = FALSE)
