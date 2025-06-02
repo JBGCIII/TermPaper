@@ -2,7 +2,7 @@
 #                                         DATA SET CREATION
 ##########################################################################################################
 
-##########################################EXCHANGE-RATE-DATA#################################################
+##########################################EXCHANGE-RATE-DATA##############################################
 # Load required package
 library(rbcb)
 library(dplyr)
@@ -76,10 +76,6 @@ arabica_simple <- arabica_df[, c("Date", "Close_USD_60kg")]
 
 # Save to CSV
 write.csv(arabica_simple, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
-
-
-
-
 
 
 ##################################################WEATHER ############################################

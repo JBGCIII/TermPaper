@@ -1,5 +1,20 @@
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Now I'm going to load a dataset from the excel file swedish_gdp.xlsx that I downloaded from 
 # SCB. The data is seasonally adjusted quarterly Swedish GDP from 1993:Q1 to 2024:Q4 in 
 # millions of SEK. To read excel files we need the 'readxl' package.
