@@ -15,7 +15,8 @@ coffee_data <- coffee_data %>%
 
 # Filter out rows with any NA in key price columns
 coffee_data_aligned <- coffee_data %>%
-  filter(!is.na(Price_Arabica) & !is.na(Price_Robusta) & !is.na(Close_USD_60kg))
+  filter(Date >= as.Date("2001-11-08")) %>%
+  filter(Price_Arabica > 0, Price_Robusta > 0)
 
 # Check start and end dates
 start_date <- min(coffee_data_aligned$Date)
