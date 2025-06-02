@@ -6,31 +6,31 @@
 library(readr)
 library(dplyr)
 
-# Read  CSV file
-coffee_data <- read_csv("Raw_Data/Coffe_Data_Set.csv")
+# Read CSV file (correct filename)
+coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv")
 
 # Convert Date to Date class
 coffee_data <- coffee_data %>%
   mutate(Date = as.Date(Date, format = "%Y-%m-%d"))
 
-# Filter out rows where either price is NA (align start date)
+# Filter out rows with any NA in key price columns
 coffee_data_aligned <- coffee_data %>%
-  filter(!is.na(Price_Arabica) & !is.na(Price_Robusta))
+  filter(!is.na(Price_Arabica) & !is.na(Price_Robusta) & !is.na(Close_USD_60kg))
 
-# Check start and end date
+# Check start and end dates
 start_date <- min(coffee_data_aligned$Date)
 end_date <- max(coffee_data_aligned$Date)
 cat("Data starts on:", start_date, "\nData ends on:", end_date, "\n")
 
-# Create numeric time index from start date (for daily data)
+# Time index
 coffee_data_aligned <- coffee_data_aligned %>%
   arrange(Date) %>%
   mutate(TimeIndex = as.numeric(Date - start_date) + 1)
 
-# Convert prices to time series objects
+# Create time series objects
 arabica_ts <- ts(coffee_data_aligned$Price_Arabica,
                  start = c(as.numeric(format(start_date, "%Y")),
-                           as.numeric(format(start_date, "%j"))),  # day of year
+                           as.numeric(format(start_date, "%j"))),
                  frequency = 365)
 
 robusta_ts <- ts(coffee_data_aligned$Price_Robusta,
@@ -38,29 +38,36 @@ robusta_ts <- ts(coffee_data_aligned$Price_Robusta,
                            as.numeric(format(start_date, "%j"))),
                  frequency = 365)
 
-# Save a wider plot as PNG
-png("Processed_Data/coffee_prices_plot.png", width = 1200, height = 600)
+robusta_futures_ts <- ts(coffee_data_aligned$Close_USD_60kg,
+                         start = c(as.numeric(format(start_date, "%Y")),
+                                   as.numeric(format(start_date, "%j"))),
+                         frequency = 365)
 
-# Plot Arabica prices
-plot(arabica_ts, type = "l", col = "darkgreen", lwd = 2,
-     ylab = "Price (USD/lb)", xlab = "Time",
-     main = "Arabica vs Robusta Coffee Prices",
-     xaxs = "i")
+# Save plot
+png("Processed_Data/coffee_prices_with_futures.png", width = 1200, height = 600)
 
-# Add Robusta prices line
-lines(robusta_ts, col = "brown", lwd = 2)
+# Plot Arabica
+plot(arabica_ts, type = "l", col = "darkgreen", lwd = 1,
+     ylab = "Price (USD/60kg)", xlab = "Time",
+     main = "Arabica, Robusta, and Robusta Futures Prices",
+     xaxs = "i", ylim = range(c(arabica_ts, robusta_ts, robusta_futures_ts), na.rm = TRUE))
 
-# Add legend
-legend("topright", legend = c("Arabica", "Robusta"),
-       col = c("darkgreen", "brown"), lty = 1, lwd = 2)
+# Add Robusta and Futures
+lines(robusta_ts, col = "brown", lwd = 1)
+lines(robusta_futures_ts, col = "blue", lwd = 1)
 
-# Close the PNG device to save the file
+# Legend
+legend("topright", legend = c("Arabica", "Robusta", "Robusta Futures"),
+       col = c("darkgreen", "brown", "blue"), lty = c(1, 1, 1), lwd = 1)
+
+# Close PNG device
 dev.off()
 
+
+
+
+
 ##########################################################################################################
-
-
-
 
 
 # Load libraries
@@ -101,53 +108,4 @@ plot(na.omit(robusta_log_returns),
      col = "brown",
      lwd = 1)
 
-
-
-#####################################################################################################################
-
-library(xts)
-library(dplyr)
-library(readr)
-library(quantmod)  # for to.weekly()
-
-# Load your data
-coffee_data <- read_csv("Raw_Data/combined_coffee_price_index.csv")
-coffee_data$Date <- as.Date(coffee_data$Date)
-
-# Filter to dates with both prices > 0 starting 2001-11-08
-coffee_filtered <- coffee_data %>%
-  filter(Date >= as.Date("2001-11-08")) %>%
-  filter(Price_Arabica > 0, Price_Robusta > 0)
-
-# Create xts objects
-arabica_xts <- xts(coffee_filtered$Price_Arabica, order.by = coffee_filtered$Date)
-robusta_xts <- xts(coffee_filtered$Price_Robusta, order.by = coffee_filtered$Date)
-
-# Calculate daily log returns
-arabica_log_returns <- diff(log(arabica_xts))
-robusta_log_returns <- diff(log(robusta_xts))
-
-# Aggregate to weekly log returns using period.apply (sum of daily log returns in the week)
-# The endpoint function finds the last day of each week
-ep <- endpoints(arabica_log_returns, on = "weeks")
-
-arabica_weekly <- period.apply(arabica_log_returns, INDEX = ep, FUN = sum)
-robusta_weekly <- period.apply(robusta_log_returns, INDEX = ep, FUN = sum)
-
-# Plot weekly log returns
-par(mfrow = c(2,1), mar = c(4,4,3,2))
-plot(na.omit(arabica_weekly),
-     main = "Arabica Coffee Weekly Log Returns",
-     ylab = "Weekly Log Return",
-     col = "darkgreen",
-     lwd = 2)
-
-plot(na.omit(robusta_weekly),
-     main = "Robusta Coffee Weekly Log Returns",
-     ylab = "Weekly Log Return",
-     col = "brown",
-     lwd = 2)
-
-
-##########################################################################################################
 
