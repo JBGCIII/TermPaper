@@ -1,6 +1,77 @@
 # This is the files that contained extra information that was not included in the main analysis
 
 
+##########################################################################################################
+#LogReturn plotting
+
+
+##########################################################################################################
+
+
+# Load libraries
+library(readr)
+library(dplyr)
+library(xts)
+
+# Read data
+coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv")
+
+# Convert Date column to Date class
+coffee_data$Date <- as.Date(coffee_data$Date)
+
+# Filter for dates with both prices available and positive, starting from 2001-11-08
+coffee_filtered <- coffee_data %>%
+  filter(Date >= as.Date("2001-11-08")) %>%
+  filter(Price_Arabica > 0, Price_Robusta > 0)
+
+# Create xts time series objects for prices
+arabica_xts <- xts(coffee_filtered$Price_Arabica, order.by = coffee_filtered$Date)
+robusta_xts <- xts(coffee_filtered$Price_Robusta, order.by = coffee_filtered$Date)
+arabica_xts <- xts(coffee_filtered$Close_USD_60kg, order.by = coffee_filtered$Date)
+robusta_xts <- xts(coffee_filtered$PTAX, order.by = coffee_filtered$Date)
+
+
+# Calculate log returns (daily)
+arabica_log_returns <- diff(log(arabica_xts))
+robusta_log_returns <- diff(log(robusta_xts))
+arabica_log_returns <- diff(log(Close_USD_60kg))
+PTAX_log_returns <- diff(log(PTAX))
+
+
+# Plot Arabica log returns (remove NAs)
+plot(na.omit(arabica_log_returns),
+     main = "Arabica Coffee Log Returns",
+     ylab = "Log Returns",
+     col = "darkgreen",
+     lwd = 1)
+
+# Plot Robusta log returns (remove NAs)
+plot(na.omit(robusta_log_returns),
+     main = "Robusta Coffee Log Returns",
+     ylab = "Log Returns",
+     col = "brown",
+     lwd = 1)
+
+# Plot Arabica log returns (remove NAs)
+plot(na.omit(arabica_log_returns),
+     main = "Arabica Coffee Log Returns",
+     ylab = "Log Returns",
+     col = "darkgreen",
+     lwd = 1)
+
+# Plot Robusta log returns (remove NAs)
+plot(na.omit(robusta_log_returns),
+     main = "Robusta Coffee Log Returns",
+     ylab = "Log Returns",
+     col = "brown",
+     lwd = 1)
+
+
+
+
+
+
+
 ####################################################################################################################
 
 #This code combines the different CSV files from the central bank before I found the API
