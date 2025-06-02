@@ -66,7 +66,6 @@ legend("topright", legend = c("Arabica", "Robusta", "Robusta Futures"),
 # Close PNG device
 dev.off()
 
-
 #########################################LOG TRANSFORMATION################################################
 
 library(readr)
@@ -190,5 +189,3 @@ par(mfrow = c(1,1))
 
 # Close PNG device
 dev.off()
-
-

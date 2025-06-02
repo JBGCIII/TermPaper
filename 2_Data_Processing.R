@@ -12,6 +12,7 @@ coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv")
 coffee_data$Date <- as.Date(coffee_data$Date)
 
 # Filter date range and create new data frame with logged prices
+# Note, Robusta Obsvervatons Start on the 2001-11-08.
 log_data <- coffee_data %>%
   filter(Date >= as.Date("2001-11-08") & Date <= as.Date("2025-05-27")) %>%
   transmute(
@@ -39,3 +40,7 @@ log_returns <- log_data %>%
 
 # Save log returns
 write_csv(log_returns, "Processed_Data/Log_and_Log_Returns_Data.csv")
+
+
+
+

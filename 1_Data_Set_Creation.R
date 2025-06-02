@@ -44,7 +44,7 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 head(ptax_data)
 
 
-##########################################COFFE FUTURES FOR ARABICA IN USD/60KG##############################################
+##########################################COFFE FUTURES FOR ARABICA IN USD/60KG##########################
 
 
 library(quantmod)
@@ -188,3 +188,4 @@ head(merged_data)
 
 # 4. Save combined dataset
 write.csv(merged_data, "Raw_Data/Coffee_Data_Set.csv", row.names = FALSE)
+

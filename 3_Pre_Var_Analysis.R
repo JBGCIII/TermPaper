@@ -1,18 +1,18 @@
 
-################################################Augmented Dickey–Fuller test (ADF) test###########################################
+################################################Classic Dickey-Fuller test###########################################
 
 # Load required packages
 library(readr)
 library(urca)
 
 # Load the logged data
-Log_and_Log_Returns_Data <- read_csv("Processed_Data/Log_and_Log_Returns_Data.csv")
+log_log_returns_data <- read_csv("Processed_Data/Log_and_Log_Returns_Data.csv")
 
 # ADF test on logged data
-arabica_series <- Log_and_Log_Returns_Data$log_Price_Arabica 
-robusta_series <- Log_and_Log_Returns_Data$log_Price_Robusta 
-exchange_rate_series <- Log_and_Log_Returns_Data$log_PTAX 
-coffe_futures_series <- Log_and_Log_Returns_Data$log_Close_USD_60kg
+arabica_series <- log_log_returns_data$log_Price_Arabica 
+robusta_series <- log_log_returns_data$log_Price_Robusta 
+exchange_rate_series <- log_log_returns_data$log_PTAX 
+coffe_futures_series <- log_log_returns_data$log_Close_USD_60kg
 
 # Run ADF test with no constant or trend, 0 lag.
 DF_arabica <- ur.df(arabica_series, type = "none", lags = 0)
@@ -31,10 +31,10 @@ summary(DF_Coffe_Futures) # 1.1233 > -1.95, fail to reject the null hypothesis.
 # log retuns instead
 
 # ADF test on log returns
-log_return_arabica_series <- Log_and_Log_Returns_Data$ret_Arabica 
-log_return_robusta_series <- Log_and_Log_Returns_Data$ret_Close_USD_60kg 
-log_return_exchange_rate_series <- Log_and_Log_Returns_Data$ret_PTAX 
-log_return_coffe_futures_series <- Log_and_Log_Returns_Data$ret_Close_USD_60kg
+log_return_arabica_series <- log_log_returns_data$ret_Arabica 
+log_return_robusta_series <- log_log_returns_data$ret_Close_USD_60kg 
+log_return_exchange_rate_series <- log_log_returns_data$ret_PTAX 
+log_return_coffe_futures_series <- log_log_returns_data$ret_Close_USD_60kg
 
 # Run ADF test with no constant or trend, 0 lag.
 DF_log_return_arabica <- ur.df(log_return_arabica_series, type = "none", lags = 0)
@@ -45,8 +45,30 @@ DF_log_return_Coffe_Futures <- ur.df(log_return_coffe_futures_series, type = "no
 # Show summary
 summary(DF_log_return_arabica) # -76.43 < -1.95,  strongly reject the null hypothesis.
 summary(DF_log_return_robusta) #−75.44 < -1.95, strongly reject the null hypothesis.
-summary(DF_log_return_Exhange_Rate)# -70.5777 < -1.95, strongly reject the null hypothesis.
-summary(DF_log_return_Coffe_Futures) # -70.5777 < -1.95, strongly reject the null hypothesis.
+summary(DF_log_return_exhange_rate)# -70.5777 < -1.95, strongly reject the null hypothesis.
+summary(DF_log_return_coffe_futures) # -70.5777 < -1.95, strongly reject the null hypothesis.
+
+
+
+#################################Kwiatkowski–Phillips–Schmidt–Shin (KPSS) #########################################
+
+# KPSS test on original logged prices
+summary(ur.kpss(arabica_series)) #19.1882 > 0.739, Reject null hypothesis.
+summary(ur.kpss(robusta_series)) #21.7384 > 0.739, Reject null hypothesis. 
+summary(ur.kpss(exchange_rate_series)) #34.1419 > 0.739, Reject null hypothesis.
+summary(ur.kpss(coffe_futures_series)) #20.1737 > 0.739, Reject null hypothesis.
+
+# KPSS test on log returns
+summary(ur.kpss(log_return_arabica_series)) #0.1311 < 0.739, Do Not Reject null hypothesis.
+summary(ur.kpss(log_return_robusta_series)) #0.084 < 0.739, Reject Not Reject null hypothesis.
+summary(ur.kpss(log_return_exchange_rate_series)) #0.2443 < 0.739, Do Not Reject null hypothesis.
+summary(ur.kpss(log_return_coffe_futures_series)) #0.084 < 0.739, Do Not Reject null hypothesis.
+
+
+
+
+
+
 
 
 
