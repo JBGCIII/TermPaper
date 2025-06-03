@@ -1,4 +1,21 @@
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Load the logged data
 coffe_data <- read_csv("Raw_Data/Coffee_Data_Set.csv")
 coffe_future_series <- coffe_data$Close_USD_60kg 
