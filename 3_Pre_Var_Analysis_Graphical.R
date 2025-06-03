@@ -15,11 +15,6 @@ coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv")
 coffee_data <- coffee_data %>%
   mutate(Date = as.Date(Date, format = "%Y-%m-%d"))
 
-# Filter out rows with any NA in key price columns
-coffee_data_aligned <- coffee_data %>%
-  filter(Date >= as.Date("2001-11-08")) %>%
-  filter(Price_Arabica > 0, Price_Robusta > 0)
-
 # Check start and end dates
 start_date <- min(coffee_data_aligned$Date)
 end_date <- max(coffee_data_aligned$Date)
@@ -52,7 +47,7 @@ png("Processed_Data/coffee_prices_with_futures.png", width = 1200, height = 600)
 # Plot Arabica
 plot(arabica_ts, type = "l", col = "darkgreen", lwd = 1,
      ylab = "Price (USD/60kg)", xlab = "Time",
-     main = "Arabica, Robusta, and Robusta Futures Prices",
+     main = "Arabica, Robusta, and Arabica Futures Prices",
      xaxs = "i", ylim = range(c(arabica_ts, robusta_ts, robusta_futures_ts), na.rm = TRUE))
 
 # Add Robusta and Futures
@@ -60,7 +55,7 @@ lines(robusta_ts, col = "brown", lwd = 1)
 lines(robusta_futures_ts, col = "blue", lwd = 1)
 
 # Legend
-legend("topright", legend = c("Arabica", "Robusta", "Robusta Futures"),
+legend("topright", legend = c("Arabica", "Robusta", "Arabica Futures"),
        col = c("darkgreen", "brown", "blue"), lty = c(1, 1, 1), lwd = 1)
 
 # Close PNG device
