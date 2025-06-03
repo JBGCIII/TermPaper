@@ -4,62 +4,47 @@
 
 #########################################NO TRANSFORMATION################################################
 
-# Load libraries
+# Load necessary libraries
 library(readr)
 library(dplyr)
+library(xts)
+library(zoo)
 
-# Read CSV file (correct filename)
-coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv")
+# Read and prepare data
+coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv") %>%
+  mutate(Date = as.Date(Date, format = "%Y-%m-%d")) %>%
+  arrange(Date)
 
-# Convert Date to Date class
-coffee_data <- coffee_data %>%
-  mutate(Date = as.Date(Date, format = "%Y-%m-%d"))
+# Create xts objects indexed by Date
+arabica_xts <- xts(coffee_data$Price_Arabica, order.by = coffee_data$Date)
+robusta_xts <- xts(coffee_data$Price_Robusta, order.by = coffee_data$Date)
+arabica_futures_xts <- xts(coffee_data$Close_USD_60kg, order.by = coffee_data$Date)
 
-# Check start and end dates
-start_date <- min(coffee_data_aligned$Date)
-end_date <- max(coffee_data_aligned$Date)
-cat("Data starts on:", start_date, "\nData ends on:", end_date, "\n")
+# Merge all series into one xts object
+merged_prices <- merge(arabica_xts, robusta_xts, arabica_futures_xts)
+colnames(merged_prices) <- c("Arabica", "Robusta", "Arabica Futures")
 
-# Time index
-coffee_data_aligned <- coffee_data_aligned %>%
-  arrange(Date) %>%
-  mutate(TimeIndex = as.numeric(Date - start_date) + 1)
+# Save the plot as PNG
+png("Processed_Data/graph_1_coffee_prices_with_futures.png", width = 1200, height = 600)
 
-# Create time series objects
-arabica_ts <- ts(coffee_data_aligned$Price_Arabica,
-                 start = c(as.numeric(format(start_date, "%Y")),
-                           as.numeric(format(start_date, "%j"))),
-                 frequency = 365)
+# Plot all series on the same graph
+plot.zoo(
+  merged_prices,
+  plot.type = "single",
+  col = c("darkgreen", "brown", "blue"),
+  lwd = 0.5,
+  ylab = "Price (USD/60kg)",
+  xlab = "Date",
+  main = "Arabica, Robusta, and Arabica Futures Prices"
+)
 
-robusta_ts <- ts(coffee_data_aligned$Price_Robusta,
-                 start = c(as.numeric(format(start_date, "%Y")),
-                           as.numeric(format(start_date, "%j"))),
-                 frequency = 365)
+# Add legend
+legend("topright", legend = colnames(merged_prices),
+       col = c("darkgreen", "brown", "blue"), lty = 1, lwd = 0.5)
 
-robusta_futures_ts <- ts(coffee_data_aligned$Close_USD_60kg,
-                         start = c(as.numeric(format(start_date, "%Y")),
-                                   as.numeric(format(start_date, "%j"))),
-                         frequency = 365)
-
-# Save plot
-png("Processed_Data/coffee_prices_with_futures.png", width = 1200, height = 600)
-
-# Plot Arabica
-plot(arabica_ts, type = "l", col = "darkgreen", lwd = 1,
-     ylab = "Price (USD/60kg)", xlab = "Time",
-     main = "Arabica, Robusta, and Arabica Futures Prices",
-     xaxs = "i", ylim = range(c(arabica_ts, robusta_ts, robusta_futures_ts), na.rm = TRUE))
-
-# Add Robusta and Futures
-lines(robusta_ts, col = "brown", lwd = 1)
-lines(robusta_futures_ts, col = "blue", lwd = 1)
-
-# Legend
-legend("topright", legend = c("Arabica", "Robusta", "Arabica Futures"),
-       col = c("darkgreen", "brown", "blue"), lty = c(1, 1, 1), lwd = 1)
-
-# Close PNG device
+# Close the PNG device
 dev.off()
+
 
 #########################################LOG TRANSFORMATION################################################
 
