@@ -3,10 +3,18 @@
 ##########################################################################################################
 # This script allows to create the limited data set which focuses on the key varaibles for the analysis
 
-library(quantmod)
-library(readxl)
-library(dplyr)
-library(lubridate)
+
+# Vector of required packages
+required_packages <- c("quantmod", "readxl", "dplyr", "lubridate")
+
+# Install any packages that are not already installed
+installed <- required_packages %in% installed.packages()
+if (any(!installed)) {
+  install.packages(required_packages[!installed])
+}
+
+# Load all packages
+invisible(lapply(required_packages, library, character.only = TRUE))
 
 ################################################COFFE PRICE###############################################
 
@@ -34,8 +42,6 @@ combined_df <- inner_join(arabica, robusta, by = "Date")
 
 # Save the final merged dataset to CSV ---
 write.csv(combined_df, "Raw_Data/Coffee_Data/combined_coffee_price_index.csv", row.names = FALSE)
-
-
 
 ##########################################COFFE FUTURES##############################################
 
@@ -68,11 +74,9 @@ arabica_simple <- arabica_df[, c("Date", "Close_USD_60kg")]
 write.csv(arabica_simple, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
 
 
-##############################################COMBINING DATA SET#########################################
+############################################## COMBINING DATA SET #########################################
 
 # 1. Read the processed datasets
-
-
 coffee_data <- read.csv("Raw_Data/Coffee_Data/combined_coffee_price_index.csv", stringsAsFactors = FALSE) %>%
   mutate(Date = as.Date(Date)) %>%
   select(Date, Price_Arabica, Price_Robusta)
@@ -80,19 +84,19 @@ coffee_data <- read.csv("Raw_Data/Coffee_Data/combined_coffee_price_index.csv", 
 arabica_simple <- read.csv("Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", stringsAsFactors = FALSE) %>%
   mutate(Date = as.Date(Date))  # Ensure Date is properly parsed
 
-# 2. Merge all datasets by Date (inner join to keep only dates present in all datasets)
-merged_data <- ptax_data %>%
-  inner_join(coffee_data, by = "Date") %>%
-  inner_join(arabica_simple, by = "Date") %>%
+# 2. Merge datasets by Date (inner join to keep only dates present in both datasets)
+merged_data <- inner_join(coffee_data, arabica_simple, by = "Date") %>%
   arrange(Date)
 
-# 3. Check the first few rows
+# 3. Remove rows before 2001-11-08
+merged_data <- merged_data %>% 
+  filter(Date >= as.Date("2001-11-08"))
+
+# 4. Check the first few rows
 head(merged_data)
 
-# 4. Save combined dataset
+# 5. Save combined dataset
 write.csv(merged_data, "Raw_Data/Coffee_Data_Set.csv", row.names = FALSE)
-
-
 
 
 

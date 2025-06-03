@@ -41,6 +41,3 @@ log_returns <- log_data %>%
 # Save log returns
 write_csv(log_returns, "Processed_Data/Log_and_Log_Returns_Data.csv")
 
-
-
-
