@@ -1,17 +1,20 @@
 # TermPaper
 
+The data set is created using APIs and Data donwloaded from CEPEA.
 
-The term paper is based on a data set I created using API and Data donwloaded from CEPEA-
-The data 
+[Financial Variables]
+PTAX: Exchange Rate USD/REAL downloaded via rbcb (Brazilian Central Bank API)
+Prica Arabica:Per 60-kilo bag, type 6, delivered in São Paulo (capital). Term prices converted into cash prices by discounting the NPR tax (CEPEA)
+Price Robusta: Per 60-kilo bag, type 6, in Espírito Santo state. Term prices converted into cash prices by discounting the NPR taX (CEPEA)
+Close_USD_60_kg: Arabica Coffee Future for Arabica (KC=F), downloaded via Yahoo finance API,  converted from cents/lb to USD/60-kilo bag (* 0.01: converts cents/lb to USD/lb, 1 kilogram ≈ 2.20462 lbs, 60 kg ≈ 132.277 lbs.)
 
-
-2025-05-30
-Raw_Data for Coffe Bean Prices donwloaded from (https://www.cepea.org.br/en/indicator/coffee.aspx). The two data set where then joined in the same data set for easier comparison.
-Original Name
-- CEPEA_20250530091001.xls --> (Arabica Coffe Price Index.xlsx)
-- CEPEA_20250530133550.xls --> (Robusta Coffe Price Index.xlsx)
-
-
+[Weather Variables] (NASAPOWER)
+lon -45.43 lat -21.55 Minas Gerais, Brazil, a major coffee-producing region, especially known for Arabica coffee.
+Temp_Max: Daily Man temp in Minas Gerais
+Temp_Min: Daily Min temp in Minas Gerais
+Humidity: Daily humidity in Minas Gerais
+Solar Radiation: Daily Solar Radiation in Minas Gerais
+Precipation_MM: Daily Precipation in Minas Gerais
 
 
 

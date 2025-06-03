@@ -1,6 +1,4 @@
 
-
-
 # Load the logged data
 coffe_data <- read_csv("Raw_Data/Coffee_Data_Set.csv")
 coffe_future_series <- coffe_data$Close_USD_60kg 
@@ -18,7 +16,6 @@ summary(ADF_coffe_futures_lagged_drift)# -1.1654 > -1.95, fail to reject the nul
 summary(ADF_coffe_futures_lagged_trend) # -1.2927 > -1.95, fail to reject the null hypothesis (Not Stationary).
 summary(ADF_coffe_futures_diff_coffee) # -77.7866 < -1.95, reject the null hypothesis(Stationary).
 summary(ur.kpss(coffe_future_series)) # 15.9817 > 0.739, Reject null hypothesis(Not Stationary).
-
 
 
 ############################################################################################
