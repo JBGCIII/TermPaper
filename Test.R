@@ -1,64 +1,12 @@
 ##########################################################################################################
 #                                         DATA PROCESSING
 ##########################################################################################################
-library(urca)
-library(dplyr)
-library(tidyr)
-
-# --- Example data creation (only run if these objects do not already exist) ---
-spot_vec <- ts(rnorm(100))
-futures_vec <- ts(rnorm(100))
-log_spot <- log(spot_vec)
-log_futures <- log(futures_vec)
-diff_log_spot <- diff(log_spot)
-diff_log_futures <- diff(log_futures)
-
-# --- Function to run ADF test and extract key info ---
-extract_adf_results <- function(ts_data, series_name) {
-  test_types <- c("none", "drift", "trend")
-
-  results_list <- lapply(test_types, function(test_type) {
-    adf_test <- ur.df(ts_data, type = test_type, selectlags = "AIC")
-    
-    # Extract test statistic (tau) — first test stat
-    test_stat <- adf_test@teststat[1]
-    
-    # Extract critical values (named vector)
-    crit_vals <- adf_test@cval[1,]
-    
-    tibble(
-      Series = series_name,
-      Test_Type = test_type,
-      Test_Statistic = test_stat,
-      Critical_1pct = crit_vals["1pct"],
-      Critical_5pct = crit_vals["5pct"],
-      Critical_10pct = crit_vals["10pct"],
-    )
-  })
-
-  bind_rows(results_list)
-}
-
-# --- Prepare series list with only existing objects ---
-series_names <- c("spot_vec", "futures_vec", "log_spot", "log_futures", "diff_log_spot", "diff_log_futures")
-existing_series <- series_names[sapply(series_names, exists)]
-
-# Create named list of the existing series objects
-series_list <- lapply(existing_series, get)
-names(series_list) <- existing_series
-
-# --- Run tests on all series and combine results ---
-all_results <- bind_rows(
-  lapply(names(series_list), function(name) {
-    extract_adf_results(series_list[[name]], series_name = name)
-  })
-)
-
-# --- Save results to CSV ---
-write.csv(all_results, "Processed_Data/ADF_Test_Results.csv", row.names = FALSE)
 
 
+test <-ur.df(data[,"arabica_spot_price"], type = "none", selectlags = 50)
 
+
+summary() # Cannot Reject H₀. 
 
 
 
@@ -214,79 +162,6 @@ print(all_results)
 
 
 
-# Load libraries
-library(readr)
-library(dplyr)
-library(xts)
-library(urca)    # For ur.df() and ur.kpss()
-library(dynlm)   # For dynlm()
-
-# Read CSV and preprocess
-coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv") %>%
-  mutate(Date = as.Date(Date, format = "%Y-%m-%d")) %>%
-  arrange(Date)
-
-# Create xts objects indexed by Date
-arabica_spot_xts <- xts(coffee_data$Price_Arabica, order.by = coffee_data$Date)
-arabica_futures_xts <- xts(coffee_data$Close_USD_60kg, order.by = coffee_data$Date)
-
-# Merge and keep only dates with both series
-data_xts <- merge(arabica_spot_xts, arabica_futures_xts, join = "inner")
-colnames(data_xts) <- c("arabica_spot_price", "arabica_futures_price")
-
-# Extract numeric vectors for tests
-spot_vec <- coredata(data_xts$arabica_spot_price)
-futures_vec <- coredata(data_xts$arabica_futures_price)
-
-# Unit root tests on levels
-summary(ur.df(spot_vec, type = "none", selectlags = "AIC"))    # ADF on spot price, no trend
-summary(ur.df(spot_vec, type = "drift", selectlags = "AIC"))   # ADF on spot price, with drift
-summary(ur.df(spot_vec, type = "trend", selectlags = "AIC"))   # ADF on spot price, with trend
-
-summary(ur.df(futures_vec, type = "none", selectlags = "AIC"))    # ADF on futures price, no trend
-summary(ur.df(futures_vec, type = "drift", selectlags = "AIC"))   # ADF on futures price, with drift
-summary(ur.df(futures_vec, type = "trend", selectlags = "AIC"))   # ADF on futures price, with trend
-
-summary(ur.kpss(spot_vec))       # KPSS test on spot price
-summary(ur.kpss(futures_vec))    # KPSS test on futures price
-
-# Log transform
-log_spot <- log(spot_vec)
-log_futures <- log(futures_vec)
-
-# Unit root tests on log-levels
-summary(ur.df(log_spot, type = "none", selectlags = "AIC"))
-summary(ur.df(log_spot, type = "drift", selectlags = "AIC"))
-summary(ur.df(log_spot, type = "trend", selectlags = "AIC"))
-
-summary(ur.df(log_futures, type = "none", selectlags = "AIC"))
-summary(ur.df(log_futures, type = "drift", selectlags = "AIC"))
-summary(ur.df(log_futures, type = "trend", selectlags = "AIC"))
-
-
-summary(ur.kpss(spot_vec))       # KPSS test on spot price
-summary(ur.kpss(futures_vec))    # KPSS test on futures price
-summary(ur.kpss(log_spot))
-summary(ur.kpss(log_futures))
-summary(ur.kpss(diff_log_spot))
-summary(ur.kpss(diff_log_futures))
-
-
-# First differences of log prices
-diff_log_spot <- diff(log_spot)
-diff_log_futures <- diff(log_futures)
-
-# Unit root tests on differenced logs
-summary(ur.df(diff_log_spot, type = "none", selectlags = "AIC"))
-summary(ur.df(diff_log_spot, type = "drift", selectlags = "AIC"))
-summary(ur.df(diff_log_spot, type = "trend", selectlags = "AIC"))
-
-summary(ur.df(diff_log_futures, type = "none", selectlags = "AIC"))
-summary(ur.df(diff_log_futures, type = "drift", selectlags = "AIC"))
-summary(ur.df(diff_log_futures, type = "trend", selectlags = "AIC"))
-
-summary(ur.kpss(diff_log_spot))
-summary(ur.kpss(diff_log_futures))
 
 # Cointegration test: regress spot on futures and test residuals for unit root
 df_for_dynlm <- data.frame(

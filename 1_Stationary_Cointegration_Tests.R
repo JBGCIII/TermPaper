@@ -1,38 +1,94 @@
+##########################################################################################################
+#                                   PRE-VAR ANALYSIS 
+##########################################################################################################
+
+
+##########################################################################################################
+###                               1. Arabica and Robusta Prices                                        ### 
+##########################################################################################################
+
+
+
+
+# Load libraries
+library(readr)
+library(dplyr)
+library(xts)     # Note, I was forced to use xts instead of ts as ts does not account for irregular data.
+library(urca)    # For ur.df() and ur.kpss()
+library(dynlm)   # For dynlm()
+
+# Read CSV and preprocess
+coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv") %>%
+  mutate(Date = as.Date(Date, format = "%Y-%m-%d")) %>%
+  arrange(Date)
+
+# Create xts objects indexed by Date
+arabica_spot_xts <- xts(coffee_data$Price_Arabica, order.by = coffee_data$Date)
+arabica_futures_xts <- xts(coffee_data$Close_USD_60kg, order.by = coffee_data$Date)
+
+# Merge and keep only dates with both series
+data_xts <- merge(arabica_spot_xts, arabica_futures_xts, join = "inner")
+colnames(data_xts) <- c("arabica_spot_price", "arabica_futures_price")
+
+# Extract numeric vectors for tests
+spot_vec <- coredata(data_xts$arabica_spot_price)
+futures_vec <- coredata(data_xts$arabica_futures_price)
+
+# Unit root tests on levels
+summary(ur.df(spot_vec, type = "none", selectlags = 45))    # ADF on spot price, no trend
+summary(ur.df(spot_vec, type = "drift", selectlags = "AIC"))   # ADF on spot price, with drift
+summary(ur.df(spot_vec, type = "trend", selectlags = "AIC"))   # ADF on spot price, with trend
+
+summary(ur.df(futures_vec, type = "none", selectlags = "AIC"))    # ADF on futures price, no trend
+summary(ur.df(futures_vec, type = "drift", selectlags = "AIC"))   # ADF on futures price, with drift
+summary(ur.df(futures_vec, type = "trend", selectlags = "AIC"))   # ADF on futures price, with trend
+
+summary(ur.kpss(spot_vec))       # KPSS test on spot price
+summary(ur.kpss(futures_vec))    # KPSS test on futures price
+
+# Log transform
+log_spot <- log(spot_vec)
+log_futures <- log(futures_vec)
+
+# Unit root tests on log-levels
+summary(ur.df(log_spot, type = "none", selectlags = "AIC"))
+summary(ur.df(log_spot, type = "drift", selectlags = "AIC"))
+summary(ur.df(log_spot, type = "trend", selectlags = "AIC"))
+
+summary(ur.df(log_futures, type = "none", selectlags = "AIC"))
+summary(ur.df(log_futures, type = "drift", selectlags = "AIC"))
+summary(ur.df(log_futures, type = "trend", selectlags = "AIC"))
+
+
+summary(ur.kpss(spot_vec))       # KPSS test on spot price
+summary(ur.kpss(futures_vec))    # KPSS test on futures price
+summary(ur.kpss(log_spot))
+summary(ur.kpss(log_futures))
+summary(ur.kpss(diff_log_spot))
+summary(ur.kpss(diff_log_futures))
+
+
+# First differences of log prices
+diff_log_spot <- diff(log_spot)
+diff_log_futures <- diff(log_futures)
+
+# Unit root tests on differenced logs
+summary(ur.df(diff_log_spot, type = "none", selectlags = "AIC"))
+summary(ur.df(diff_log_spot, type = "drift", selectlags = "AIC"))
+summary(ur.df(diff_log_spot, type = "trend", selectlags = "AIC"))
+
+summary(ur.df(diff_log_futures, type = "none", selectlags = "AIC"))
+summary(ur.df(diff_log_futures, type = "drift", selectlags = "AIC"))
+summary(ur.df(diff_log_futures, type = "trend", selectlags = "AIC"))
+
+summary(ur.kpss(diff_log_spot))
+summary(ur.kpss(diff_log_futures))
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-# Load the logged data
-coffe_data <- read_csv("Raw_Data/Coffee_Data_Set.csv")
-coffe_future_series <- coffe_data$Close_USD_60kg 
-ADF_coffe_futures <- ur.df(coffe_future_series, type = "none", lags = 0)
-ADF_coffe_futures_lagged <- ur.df(coffe_future_series, type = "none", selectlags = "AIC", lags = 12)
-ADF_coffe_futures_lagged_drift<- ur.df(coffe_future_series, type = "drift", selectlags = "AIC", lags = 12) # + intercept
-ADF_coffe_futures_lagged_trend <- ur.df(coffe_future_series, type = "trend", selectlags = "AIC", lags = 40) # + intercept & trend
-
-diff_coffee <- diff(coffe_future_series)
-ADF_coffe_futures_diff_coffee <- ur.df(diff_coffee, type = "drift", selectlags = "AIC", lags = 0)
-
-summary(ADF_coffe_futures) # 0.6464 > -1.95, fail to reject the null hypothesis (Not Stationary).
-summary(ADF_coffe_futures_lagged) # 0.5122> -1.95, fail to reject the null hypothesis (Not Stationary).
-summary(ADF_coffe_futures_lagged_drift)# -1.1654 > -1.95, fail to reject the null hypothesis (Not Stationary).
-summary(ADF_coffe_futures_lagged_trend) # -1.2927 > -1.95, fail to reject the null hypothesis (Not Stationary).
-summary(ADF_coffe_futures_diff_coffee) # -77.7866 < -1.95, reject the null hypothesis(Stationary).
-summary(ur.kpss(coffe_future_series)) # 15.9817 > 0.739, Reject null hypothesis(Not Stationary).
 
 
 ############################################################################################
