@@ -29,8 +29,6 @@ colnames(data_xts) <- c("arabica_spot_price", "robusta_spot_price", "arabica_fut
 
 #Useful if you want a more parsimonious model, especially with large samples.
 
-
-
 # 1. Unit root tests – Spot Price Arabica
 summary(ur.df(arabica_spot_xts, type = "none", selectlags = "AIC")) 
 summary(ur.df(arabica_spot_xts, type = "drift", selectlags = "AIC")) 
@@ -134,3 +132,5 @@ regression <- dynlm(Price_Arabica ~ Price_Robusta, data = coffee_data)
 summary(ur.df(regression$residuals, type = "drift", selectlags = "AIC"))
 
 #The residuals are not stationary ⇒ The two variables do not share a long-run equilibrium relationship
+
+
