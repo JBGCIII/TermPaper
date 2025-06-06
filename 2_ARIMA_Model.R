@@ -1,11 +1,10 @@
-
 ##########################################################################################################
 #                                   ARIMA MODEL
 ##########################################################################################################
 
 # Package installation
 # Load or install required packages
-required_packages <- c("readr", "dplyr", "xts", "urca", "dynlm", "forecast")
+required_packages <- c("readr", "dplyr", "xts", "urca", "dynlm", "forecast", "portes", "tseries")
 
 installed <- required_packages %in% installed.packages()
 if (any(!installed)) {
@@ -67,11 +66,8 @@ summary(arima_spot_price_log_diff_ARMA)
 #Conclusion: Although the AIC is slightly improved over MA(1), the standard errors are large, meaning 
 #parameter estimates are not precise, a white noise seems better.
 
-
-
-
 ##########################################################################################################
-###                               1. ARIMA ARABICA FUTURE PRICE                                          ### 
+###                               2. ARIMA ARABICA FUTURE PRICE                                          ### 
 
 #ACF PLOT
 png("Processed_Data/acf_plot_future_price.png", width = 800, height = 600)
@@ -110,190 +106,112 @@ summary(arima_future_price_log_diff_ARMA)
 #parsimonious with decent predictive accuracy.
 
 ##########################################################################################################
-###                               Ljung-box                                                   ### 
+###                               3.LJUNG-BOX TEST                                                     ### 
 
 
+#Since the ARIMA(0,0,0) basically assumes white noise, the Ljung-Box test will confirm if that assumption 
+#holds—i.e., residuals are uncorrelated. 
 
+dates <- coffee_data$Date  # e.g., a Date class vector of length 5400 I did this since I wanted to
+# see when the spikes occured.
 
+# Align dates with residual length
+dates_spot <- tail(dates, length(arima_spot_price_log_diff_white_noise$residuals))
+dates_future <- tail(dates, length(arima_future_price_log_diff_white_noise$residuals))
 
+png("Processed_Data/Residual_Plots.png", width = 800, height = 600)
+par(mfrow = c(2, 4))  # 2x4 layout
 
-
-
-
-#Since the ARIMA(0,0,0) basically assumes white noise, the Ljung-Box test will confirm if that assumption holds—i.e., residuals are uncorrelated.
-# If the test shows no significant autocorrelation, you’re good. If it does, you may want to consider more complex AR or MA terms.
-
-
-
-
-
-
-
-
-
-##############3
-
-par(mfrow=c(2,2)) # to plot the four plots below in a 2 x 2 grid
-plot(arima_spot$residuals,
-     main = "Spot Residual",
+# Plot Spot residuals vs dates
+plot(dates_spot, arima_spot_price_log_diff_white_noise$residuals,
+     type = "l",
+     main = "Spot (0,0,0) Residual",
      ylab = "Residual",
-     xlab = "",
-)
-abline(h = mean(arima_spot$residuals),
+     xlab = "Date")
+abline(h = mean(arima_spot_price_log_diff_white_noise$residuals),
        lty = "dashed",
        lwd = 2,
        col = "blue")
 
-plot(arima_futures$residuals,
-     main = "ARMA(1,1) Residual",
+# Plot Future residuals vs dates
+plot(dates_future, arima_future_price_log_diff_white_noise$residuals,
+     type = "l",
+     main = "Future (0,0,0) Residual",
      ylab = "Residual",
-     xlab = "",
-)
-abline(h = mean(arima_futures$residuals),
+     xlab = "Date")
+abline(h = mean(arima_future_price_log_diff_white_noise$residuals),
        lty = "dashed",
        lwd = 2,
        col = "blue")
 
-Acf(arima_spot$residuals, 
-    main = "MA(1) Residual",
-    ylab = "ACF",
-    xlab = "")
+acf(arima_spot_price_log_diff_white_noise$residuals,
+    main = "ACF - Spot Residuals")
 
-Acf(arima_futures$residuals, 
-    main = "ARMA(1,1) Residual",
-    ylab = "ACF",
-    xlab = "")
+acf(arima_future_price_log_diff_white_noise$residuals,
+    main = "ACF - Future Residuals")
 
-# It is not unexpected that these plots look similar for both series (why?) but both look 
-# good!
+hist(arima_spot_price_log_diff_white_noise$residuals,
+     breaks = 50,
+     main = "Histogram of Spot Price Residuals",
+     xlab = "Residual",
+     col = "lightgray",
+     border = "white")
+abline(v = mean(arima_spot_price_log_diff_white_noise$residuals), col = "blue", lwd = 2, lty = 2)
+
+hist(arima_future_price_log_diff_white_noise$residuals,
+     breaks = 50,
+     main = "Histogram of Futures Price Residuals",
+     xlab = "Residual",
+     col = "lightgray",
+     border = "white")
+abline(v = mean(arima_future_price_log_diff_white_noise$residuals), col = "blue", lwd = 2, lty = 2)
+
+qqnorm(arima_future_price_log_diff_white_noise$residuals,
+       main = "Q-Q Plot of Spot Price Residuals")
+qqline(arima_future_price_log_diff_white_noise$residuals, col = "blue", lwd = 2)
+
+qqnorm(arima_future_price_log_diff_white_noise$residuals,
+       main = "Q-Q Plot of Future Price Residuals")
+qqline(arima_future_price_log_diff_white_noise$residuals, col = "blue", lwd = 2)
+
+dev.off()
+
+####
+
+# Compute q once
+q <- floor(0.75 * length(arima_spot_price_log_diff_white_noise$residuals)^(1/3))
+
+# Count number of model coefficients
+ncoeff_spot <- length(coef(arima_spot_price_log_diff_white_noise))
+ncoeff_future <- length(coef(arima_future_price_log_diff_white_noise))
+
+# Ljung-Box tests using same q
+Box.test(arima_spot_price_log_diff_white_noise$residuals, lag = q, type = "Ljung-Box", fitdf = ncoeff_spot)
+#X-squared = 26.97
+#df = 12
+#p-value = 0.0078
+
+Box.test(arima_future_price_log_diff_white_noise$residuals, lag = q, type = "Ljung-Box", fitdf = ncoeff_future)
+#X-squared = 20.15
+#df = 12
+#p-value = 0.0643
 
 
-
-
-
-
-
-
-
-
-
-
-library(forecast)
-auto.arima(diff_log_spot_price_arabica, d=1)
-auto.arima(diff_log_futures_price_arabica, d=1)
-
-
-Acf(arima_spot$residuals)
-Acf(arima_futures$residuals)
-
-Box.test(arima_spot$residuals, lag = q, type = "Ljung-Box", fitdf = length(coef(arima_spot)))
-Box.test(arima_futures$residuals, lag = q, type = "Ljung-Box", fitdf = length(coef(arima_futures)))
-
-
-
-
-
-
-data.frame(
-  Model = c("Spot", "Futures"),
-  AIC = c(AIC(arima_spot), AIC(arima_futures)),
-  BIC = c(BIC(arima_spot), BIC(arima_futures))
-)
-
-
-
-
-
-
-############################################################################################
-
-# We now want to "identify, estimate and do diagnostics of at least one ARIMA-model". We know 
-# from the tests above that we want to estimate an ARIMA(p,1,q) for some p and q, i.e. an 
-# ARMA(p,q) model for the difference of the real M1 money stock.
-
-# Plotting the estimated autocorrelation function
-
-Acf(dm)
-
-# An ARMA(1,1) or MA(1) seems like good candidates (why?). Let's first use the arima() function
-# to estimate and check coefficients.
-
-MA1 <- arima(dm, order = c(0,0,1), method = "ML")
-ARMA11 <- arima(dm, order = c(1,0,1), method = "ML")
-
-summary(MA1)
-summary(ARMA11)
-
-############################################################################################
-
-# Ljung-Box test
-
-# Let's start by plotting the residuals and check the ACF of both models
-
-par(mfrow=c(2,2)) # to plot the four plots below in a 2 x 2 grid
-plot(MA1$residuals,
-     main = "MA(1) Residual",
-     ylab = "Residual",
-     xlab = "",
-)
-abline(h = mean(MA1$residuals),
-       lty = "dashed",
-       lwd = 2,
-       col = "blue")
-
-plot(ARMA11$residuals,
-     main = "ARMA(1,1) Residual",
-     ylab = "Residual",
-     xlab = "",
-)
-abline(h = mean(ARMA11$residuals),
-       lty = "dashed",
-       lwd = 2,
-       col = "blue")
-
-Acf(MA1$residuals, 
-    main = "MA(1) Residual",
-    ylab = "ACF",
-    xlab = "")
-
-Acf(ARMA11$residuals, 
-    main = "ARMA(1,1) Residual",
-    ylab = "ACF",
-    xlab = "")
-
-# It is not unexpected that these plots look similar for both series (why?) but both look 
-# good!
-
-# We now perform Ljung-Box tests. First we compute the appropriate number of lags to choose 
-# using the the usual rule of thumb.
-
-q <- floor(0.75*nobs(MA1)^(1/3)) # = 4
-
-# Then compute the number of parameters for our two models.
-
-ncoeff_MA1 <- length(coef(MA1)) # = 2
-ncoeff_ARMA11 <- length(coef(ARMA11)) # = 3
-
-# Then use the LjungBox function to perform the LjungBox test. Remember that the null 
-# hypothesis of the Ljung-Box test is autocorrelation = 0 for lags 1,...,q.
-
-LjungBox(MA1$residuals, lags = q, fitdf = ncoeff_MA1)
-LjungBox(ARMA11$residuals, lags = q, fitdf = ncoeff_ARMA11)
-
-# Can not reject the null in both cases which does not surprise me given the plot.
-
-# Finally we want to rank our two models using AIC and BIC (Bayesian information
-# criterion). Recall that:
-
-# AIC: 2k - 2log(L),
-# BIC: log(n)k - 2log(L),
-
-# and remember that lower is better!
+LjungBox(arima_spot_price_log_diff_white_noise$residuals, lags = q, fitdf = ncoeff_spot)
+LjungBox(arima_future_price_log_diff_white_noise$residuals, lags = q, fitdf = ncoeff_future)
 
 IC <- data.frame(
-  Model = c("MA(1)", "ARMA(1,1)"),
-  AIC = c(AIC(MA1), AIC(ARMA11)),
-  BIC = c(BIC(MA1), BIC(ARMA11))
+  Model = c("Spot(0,0,0)", "Future(0,0,0)"),
+  AIC = c(AIC(arima_spot_price_log_diff_white_noise), AIC(arima_future_price_log_diff_white_noise)),
+  BIC = c(BIC(arima_spot_price_log_diff_white_noise), BIC(arima_future_price_log_diff_white_noise))
 )
 
-IC
+# IC
+#          Model       AIC       BIC
+#1   Spot(0,0,0) -28409.84 -28396.56
+#2 Future(0,0,0) -27440.27 -27426.99
+#Spot (0,0,0)	       -28409.84	0.0196	       0.0146        0.0078 (significant autocorrelation)
+#Futures (0,0,0)	-27440.27	0.02138	0.01596	0.0643 (borderline, no strong autocorrelation)
+
+# Despite the AIC value for the spot model being higher, the signifcant autocorrelation has led me to use
+# the future one instead.
