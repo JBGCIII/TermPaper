@@ -150,7 +150,7 @@ merged_data <- ptax_data %>%
   filter(Date >= as.Date("2001-11-08")) %>%
   arrange(Date)
 
-write.csv(merged_data, "Raw_Data/Coffee_Data_Set_Full.csv", row.names = FALSE)
+write.csv(merged_data, "Raw_Data/Coffee_Data_Set.csv", row.names = FALSE)
 
 
 
