@@ -725,3 +725,47 @@ DM_pvals
 
 # The null (expected difference in average forecast error = 0) can not be rejected for any
 # horizon h = 1,...,4.
+
+
+
+
+
+
+
+
+
+
+
+###########################
+
+
+
+
+# Unemployment Granger causes inflation as established above.
+
+hmax = 40 # 10 years in quarters
+
+# Use forecast() to forecast using our estimated VAR and include fan = TRUE
+
+VAR_forecast <- forecast(VAR, h = hmax, fan = TRUE) 
+
+# Then plot!
+
+plot(VAR_forecast$forecast$inflation,
+     main = "US Inflation Rate",
+     ylab = "%")
+
+########################################################################################
+
+# We can use the fevd() function to compute the forecast error variance decompositions.
+
+FEVD <- fevd(VAR)
+
+# The round() function simply rounds the output (here to 1 decimal).
+
+round(FEVD$inflation*100,1)
+round(FEVD$unemployment*100,1)
+
+# It is also possible to simply type:
+
+FEVD

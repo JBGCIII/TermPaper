@@ -1,5 +1,5 @@
 ##########################################################################################################
-#                                         DATA SET CREATION FULLL
+#                                         GRAPHS
 ##########################################################################################################
 
 # Load or install required packages
@@ -26,6 +26,7 @@ coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv") %>%
 arabica_xts <- xts(coffee_data$Price_Arabica, order.by = coffee_data$Date)
 robusta_xts <- xts(coffee_data$Price_Robusta, order.by = coffee_data$Date)
 arabica_futures_xts <- xts(coffee_data$Close_USD_60kg, order.by = coffee_data$Date)
+usd_real_exchange_xts <- xts(coffee_data$PTAX, order.by = coffee_data$Date)
 
 # Merge all series into one xts object
 merged_prices <- merge(arabica_xts, robusta_xts, arabica_futures_xts)
@@ -53,33 +54,21 @@ legend("topright", legend = colnames(merged_prices),
 dev.off()
 
 
-
-
 ##########################################################################################################
-#                                         DATA SET CREATION FULLL
+##                                         Graph 2: Log Return of Variable of Interest                  ##
 ##########################################################################################################
-library(readr)
-library(xts)
 
-# Read data
-coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv")
-
-# Convert Date column to Date class
-coffee_data$Date <- as.Date(coffee_data$Date)
-
-# Create xts time series objects for prices
-arabica_spot_price_xts <- xts(coffee_data$Price_Arabica, order.by = coffee_data$Date)
-robusta_spot_price_xts <- xts(coffee_data$Price_Robusta, order.by = coffee_data$Date)
-arabica_future_price_xts <- xts(coffee_data$Close_USD_60kg, order.by = coffee_data$Date)
 
 # Calculate log returns
 arabica_log_returns <- diff(log(arabica_spot_price_xts))
 robusta_log_returns <- diff(log(robusta_spot_price_xts))
 arabica_future_log_returns <- diff(log(arabica_future_price_xts))
+usd_real_exchange_log_returns <- diff(log(usd_real_exchange_xts))
+
 
 # Save multiple plots in one PNG file
-png("Processed_Data/graph_2_log_coffee_prices_with_futures.png", width = 1200, height = 800)
-par(mfrow = c(3, 1))  # 3 rows, 1 column of plots
+png("Processed_Data/graph_2_log_coffee_prices_with_futures_exchange_rate.png", width = 1200, height = 800)
+par(mfrow = c(2, 2))  # 3 rows, 1 column of plots
 
 # Plot Arabica log returns
 plot(na.omit(arabica_log_returns),
@@ -100,6 +89,14 @@ plot(na.omit(arabica_future_log_returns),
      main = "Arabica Futures Log Returns",
      ylab = "Log Returns",
      col = "blue",
+     lwd = 1)
+
+
+# Plot Arabica futures log returns
+plot(na.omit(usd_real_exchange_log_returns),
+     main = "Exchange Rate Log Returns",
+     ylab = "Log Returns",
+     col = "purple",
      lwd = 1)
 
 # Close PNG device
