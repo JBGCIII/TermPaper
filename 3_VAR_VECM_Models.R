@@ -1,3 +1,9 @@
+##########################################################################################################
+#                                   VAR & VECM MODEL
+##########################################################################################################
+
+
+
 # Load libraries
 
 library(urca) # ur.df() and ur.kpss()
@@ -5,81 +11,139 @@ library(dynlm) # dynlm()
 library(vars) # VARselect, VAR(), serial.test(), normality.test(), causality(), irf(), fanchart(), fevd()
 library(forecast) # forecast()
 
-# Load data
 
-data(Macrodat, package = "Ecdat")
 
-CPI <- Macrodat[,"punew"]
-inflation_qtq <- diff(log(CPI)) # inflation quarter-to-quarter
-inflation <- 100*((1 + inflation_qtq)^4 - 1) # annualized inflation
-unemployment <- Macrodat[,"lhur"]
+# Package installation
+# Load or install required packages
+required_packages <- c("readr", "dplyr", "xts", "urca", "dynlm")
 
-# To combine inflation and unemployment to a multivariate time series we use the
-# function ts.intersect().
+installed <- required_packages %in% installed.packages()
+if (any(!installed)) {
+  install.packages(required_packages[!installed])
+}
+invisible(lapply(required_packages, library, character.only = TRUE))
 
-data <- ts.intersect(inflation,unemployment)
+# Data preparation #
+# 1. Read CSV and preprocess
+coffee_data <- read_csv("Raw_Data/Coffee_Data_Set.csv")
 
-# Plot 
 
-ts.plot(data,
-        main = "US Inflation- and Unemployment Rate",
-        ylab = "%",
-        xlab = "",
-        lwd = c(2,2),
-        lty = c(1,3)) # 1 = solid, 2 = dashed
-legend("topright",
-       legend = c("Inflation", "Unemployment"),
-       lty = c(1,3)
-)
 
-########################################################################################
+# 2. Create xts objects
+arabica_spot_xts <- xts(coffee_data$Price_Arabica, order.by = coffee_data$Date)
+robusta_spot_xts <- xts(coffee_data$Price_Robusta, order.by = coffee_data$Date)
+arabica_futures_xts <- xts(coffee_data$Close_USD_60kg, order.by = coffee_data$Date)
 
-# We now want to perform an ADF test to determine the order of integration of both
-# series. We use the ur.df() function to perform the ADF test. We include the argument 
-# selectlags = "AIC" so that the order of the AR(p) model we test for a unit root 
-# is selected by AIC (AIC is prefered over BIC, see S&W p.587).
 
-# The t-value on z.lag.1 (or the first number after "Value of test-statistic is:")
-# is our test statistic. The p-value becomes smaller as the test statistic becomes 
-# more negative, i.e. to reject the null hypothesis of a unit root we need a big
-# negative number.
+# 3. Merge series on common dates
+data_xts <- merge(merge(arabica_spot_xts, robusta_spot_xts, join = "inner"), arabica_futures_xts, join = "inner")
+colnames(data_xts) <- c("arabica_spot_price", "robusta_spot_price", "arabica_futures_price")
 
-summary(ur.df(data[,"inflation"], type = "none", selectlags = "AIC")) # cannot reject
-summary(ur.df(data[,"inflation"], type = "drift", selectlags = "AIC")) # reject at 5%
-summary(ur.df(data[,"inflation"], type = "trend", selectlags = "AIC")) # cannot reject
 
-summary(ur.df(data[,"unemployment"], type = "none", selectlags = "AIC")) # cannot reject
-summary(ur.df(data[,"unemployment"], type = "drift", selectlags = "AIC")) # reject at 10%
-summary(ur.df(data[,"unemployment"], type = "trend", selectlags = "AIC")) # cannot reject
+diff_log_spot_price_arabica <- na.omit(diff(log(arabica_spot_xts)))
+diff_log_spot_price_robusta <- na.omit(diff(log(robusta_spot_xts)))
+diff_log_futures_price_arabica <- na.omit(diff(log(arabica_futures_xts)))
 
-# We can also perform a KPSS test.
-# To not reject the null hypothesis of trend stationarity, we need a small number.
-# The alternative hypothesis of the KPSS test is existence of a unit root.
 
-summary(ur.kpss(data[,"inflation"])) # reject at 5%
-summary(ur.kpss(data[,"unemployment"])) # reject at 5%
+data_vars <- cbind(diff_log_spot_price_arabica,diff_log_spot_price_robusta)
+VARselect(data_vars, type = "const")
+#                  1             2             3             4             5
+#AIC(n) -1.677313e+01 -1.677636e+01 -1.677988e+01 -1.677879e+01 [-1.678003e+01]
+#HQ(n)  -1.677067e+01 -1.677226e+01 [-1.677414e+01] -1.677141e+01 -1.677102e+01
+#SC(n)  [-1.676607e+01] -1.676460e+01 -1.676341e+01 -1.675762e+01 -1.675415e+01
+#FPE(n)  5.194261e-08  5.177487e-08  5.159318e-08  5.164933e-08  [5.158522e-08]
+#                   6             7             8             9            10
+#AIC(n) -1.677934e+01 -1.677851e+01 -1.677808e+01 -1.677739e+01 -1.677712e+01
+#HQ(n)  -1.676869e+01 -1.676622e+01 -1.676415e+01 -1.676182e+01 -1.675992e+01
+#SC(n)  -1.674876e+01 -1.674323e+01 -1.673809e+01 -1.673269e+01 -1.672772e+01
+#FPE(n)  5.162092e-08  5.166354e-08  5.168597e-08  5.172184e-08  5.173541e-08
 
-# To summarize reject ADF null = GOOD, reject KPSS null = BAD!
-# What to do? Difference and then perform tests again! 
+#AIC(n) 5, #FPE(n) 5 --> p
 
-diff_data <- diff(data)
+# Make the VAR model with the selected lag order
+model_var <- VAR(data_vars, p = 5, type = "const")  # p from selection
 
-# I would have done e.g.:
-# data <- ts.intersect(diff(data[,"inflation"]),unemployment),
-# if we could reject that unemployment followed a unit root.
+summary(model_var)
 
-summary(ur.df(diff_data[,"inflation"], type = "none", selectlags = "AIC")) # reject at 1%
-summary(ur.df(diff_data[,"inflation"], type = "drift", selectlags = "AIC")) # reject at 1%
-summary(ur.df(diff_data[,"inflation"], type = "trend", selectlags = "AIC")) # reject at 1%
 
-summary(ur.df(diff_data[,"unemployment"], type = "none", selectlags = "AIC")) # reject at 1%
-summary(ur.df(diff_data[,"unemployment"], type = "drift", selectlags = "AIC")) # reject at 1%
-summary(ur.df(diff_data[,"unemployment"], type = "trend", selectlags = "AIC")) # reject at 1%
 
-summary(ur.kpss(diff_data[,"inflation"])) # cannot reject
-summary(ur.kpss(diff_data[,"unemployment"])) # cannot reject
 
-# Unemployment and inflation are both integrated of order 1
+
+
+
+
+
+VARselec()
+
+# Fit a VAR model, the variables are not cointegrated, so we need to use a VAR model in differences.
+# Combind the two series into a data frame
+data_vars <- cbind(diff(egg), diff(chickens))
+# Use VARselect to find the optimal lag order based on information criteria
+VARselect(data_vars, type = "const")
+# It suggests a lag order of 1 based on AIC, HQ, and FPE criteria. We will use this lag order for our VAR model.
+
+# Make the VAR model with the selected lag order
+model_var <- VAR(data_vars, p = 1, type = "const")  # p from selection
+summary(model_var)
+# We cant really intrerpret the coefficients, as we are working with first differences.
+
+#==================================================================================================
+#
+# 4) Perform Ljung-Box and Jarque-Bera tests. What are the conclusions?
+#
+#==================================================================================================
+
+# Perform Ljung-Box test multivariate residuals, we chose lags 2, 3, and 4. Using the 2p, 3p and 4p
+serial.test(model_var, lags.pt = 2) # cannot reject null
+serial.test(model_var, lags.pt = 3) # cannot reject null
+serial.test(model_var, lags.pt = 4) # cannot reject null
+# The null hypothesis is no serial correlation, and we cannot reject it at any of the tested lags,
+# indicating that the residuals are not serially correlated.
+
+# Perform Jarque-Bera test for normality of residuals multivariate
+normality.test(model_var)$jb.mul$JB # p-value = 0.3855
+# The null is that the residuals are normally distributed, we can not reject the null,
+# thus the residuals appear to be normally distributed.
+
+#===================================================================================================
+#
+# 5) Perform Granger’s causality test. Do chicken Granger-cause eggs or eggs Granger-cause chicken?
+#
+#===================================================================================================
+# Granger causality test for chicken causing egg
+Granger_c_e <- causality(model_var, cause = "diff.chickens.", vcov. = sandwich::vcovHC(model_var))
+# Grnager causality test for egg causing chicken
+Granger_e_c <- causality(model_var, cause = "diff.egg.", vcov. = sandwich::vcovHC(model_var))
+
+
+# Check the results of the Granger causality tests
+# The null of the first Granger test is that chickens does not Granger cause
+# eggs and the null of the second is that eggs does not Granger
+# cause chickens
+Granger_c_e$Granger # cannot reject null at 1% significance, p-value = 0.03755
+Granger_e_c$Granger # cannot reject null at 10% significance, p-value = 0.4948
+# The results indicate that chickens ganger cause eggs at the 5% significance level
+
+#====================================================================================================
+#
+# 6) So which was first, the chicken or the egg?
+#
+#====================================================================================================
+
+# The dad joke answer: The chicken came first… but only because the egg hit the snooze button.
+
+# The serious answer: The chicken Granger causes the egg, but not the other way around.
+# Thus, we can conclude that the chicken came first in the sense that it can predict the egg production.
+# And we assume something evolved in to the chicken, which then laid the eggs. 
+
+
+
+
+
+
+
+
+
 
 # We use VARselect() to determine the appropriate lag order:
 
@@ -240,7 +304,6 @@ summary(ur.df(diff(chickens), type = "none", selectlags = "AIC")) # Can reject n
 summary(ur.df(diff(chickens), type = "drift", selectlags = "AIC")) # Can reject null at any significance level
 summary(ur.df(diff(chickens), type = "trend", selectlags = "AIC")) # Can reject null at any significance level
 
-# Both egg and chiken are stationary after the first diff, so we caan conclude that both variables are I(1).
 
 # We can also use the ur.kpss() function to check for stationarity
 summary(ur.kpss(egg)) # We reject at 5 %
@@ -251,6 +314,10 @@ summary(ur.kpss(chickens)) # We reject at all significance levels
 summary(ur.kpss(diff(egg))) # We cannot reject at any significance level
 summary(ur.kpss(diff(chickens))) # We cannot reject at any significance level
 # Both first differences are stationary, so we conclude that both variables are I(1).
+
+
+# Both egg and chiken are stationary after the first diff, so we caan conclude that both variables are I(1).
+
 
 #==================================================================================================
 #

@@ -214,4 +214,10 @@ IC <- data.frame(
 #Futures (0,0,0)	-27440.27	0.02138	0.01596	0.0643 (borderline, no strong autocorrelation)
 
 # Despite the AIC value for the spot model being higher, the signifcant autocorrelation has led me to use
-# the future one instead.
+# the future one instead. However since log returns are noise, future returns can’t be predicted beyond the average.
+
+
+#High volatility: Prices swing a lot due to weather shocks, pests, political issues in producing countries, and speculation.
+#External factors: Coffee prices depend on many unpredictable variables like climate conditions, currency exchange rates, global demand, and supply disruptions.
+#Efficient markets: Commodity markets often quickly incorporate available information, so future price movements are close to a “random walk” — hard to forecast better than chance.
+#Noise-like behavior: As you saw in your ARIMA analysis, the log returns (price changes) often behave like white noise, meaning they have little autocorrelation and no clear patterns.
