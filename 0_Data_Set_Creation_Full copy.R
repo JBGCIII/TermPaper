@@ -153,7 +153,7 @@ merged_data <- ptax_data %>%
   arrange(Date)
 
 # Save merged data
-write.csv(merged_data, "Raw_Data/Coffee_Data_Set_1.csv", row.names = FALSE)
+write.csv(merged_data, "Raw_Data/Coffee_Data_Set.csv", row.names = FALSE)
 
 
 
