@@ -33,15 +33,16 @@ Precipation_MM: Daily Precipation in Minas Gerais
 NOTE, Scripts must be run sequentially in order to work, those with the same number can be run indepedent from each other (i.e you can run Pre_Var_Analysis.R before
 Pre_Var_Analysis_Graphical.R)
 
-1.Data_Set_Creation.R -> Creates the Coffe_Data_Set.csv
+0.Data_Set_Creation.R -> Creates the Coffe_Data_Set.csv
 
-2.Data_Processing.R -> Creates a processed data set with log and log returns.
+1_Stationary_Cointegration_Tests.R -> Runs ADF, KPPS, Cointegration tests
 
-3.Pre_Var_Analysis_Graphical.R -> Creates graphs for the graphical analysis of whether the variable are stationary or not.
+3_VAR_VECM_Models.R -> Runs VAR model, VAR model diagnostics, Granger Casuality Test, and VECM model
 
-3.Pre_Var_Analysis.R -> Conducts Augmented Dickey–Fuller test (ADF) test,Kwiatkowski–Phillips–Schmidt–Shin (KPSS) test, and Ljung-Box test.
+4_Forecast.R -> Creates Forecast for ARINMA and VAR (note no VECM since it already was not one of 
+the taught codes.)
 
-4.VAR_Analysis -> Var analysis of Coffe Futures for Arabica, Price for Arabica, Price for Robusta, and excahnge rate between usd and real.
+4_Forecast.R -> Creates Plot for Spot prices (Graph 1) and log returns (Graph 2)
 
 
 
