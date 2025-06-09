@@ -88,14 +88,7 @@ arabica_df$Close_USD_60kg <- arabica_df$Close * 0.01 * 132.277
 # Keep only Date and Close_USD_60kg in a new data frame (base R subsetting)
 arabica_clean <- arabica_df[, c("Date", "Close_USD_60kg")]
 
-# Load zoo for NA filling
-library(zoo)
-
-# Fill NA using last observation carried forward
-arabica_clean$Close_USD_60kg <- na.locf(arabica_clean$Close_USD_60kg, na.rm = FALSE)
-
-# Alternatively, remove NAs entirely
-# arabica_clean <- na.omit(arabica_clean)
+arabica_clean <- na.omit(arabica_clean)
 
 # Create directory if it doesn't exist
 dir.create("Raw_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
