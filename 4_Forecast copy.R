@@ -67,6 +67,10 @@ dev.off()
 ###                               2. ARIMA
 #############################################################################
 
+#############################################################################
+###                               2. ARIMA
+#############################################################################
+
 # 1. Create log-level futures price series
 log_futures <- xts(log(data$Close_USD_60kg), order.by = data$Date)
 
@@ -85,21 +89,16 @@ arima_fc <- forecast(arima_model, h = length(test))
 fc_prices <- exp(arima_fc$mean)
 fc_xts <- xts(fc_prices, order.by = index(test))
 
+# 5. Align indices of actual and forecast for plotting
+all_dates <- sort(unique(c(index(test), index(fc_xts))))
+test_aligned <- merge(test, xts(, all_dates))
+fc_aligned <- merge(fc_xts, xts(, all_dates))
 
-if (
-  !is.null(test) && length(test) > 0 && all(!is.na(test)) &&
-  !is.null(fc_xts) && length(fc_xts) > 0 && all(!is.na(fc_xts))
-) {
-  png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
-  plot(exp(test), main = "Futures Price: Actual vs Forecast (Drift)",
-       col = "blue", lwd = 2, ylab = "Price", xlab = "Date")
-  lines(fc_xts, col = "red", lwd = 2, lty = 2)
-  legend("topleft", legend = c("Actual", "Forecast with Drift"),
-         col = c("blue", "red"), lty = c(1, 2), lwd = 2)
-  dev.off()
-} else {
-  warning("Data invalid or empty - skipping ARIMA plot.")
-}
-
-
-print(range(data$Date))
+# 6. Plot actual vs forecast
+png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
+plot(exp(test_aligned), main = "Futures Price: Actual vs Forecast (Drift)",
+     col = "blue", lwd = 2, ylab = "Price", xlab = "Date", type = "l")
+lines(fc_aligned, col = "red", lwd = 2, lty = 2)
+legend("topleft", legend = c("Actual", "Forecast with Drift"),
+       col = c("blue", "red"), lty = c(1, 2), lwd = 2)
+dev.off()
