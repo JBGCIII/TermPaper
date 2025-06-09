@@ -70,35 +70,49 @@ dev.off()
 #############################################################################
 ###                               2. ARIMA
 #############################################################################
+library(xts)
+library(forecast)
 
 # 1. Create log-level futures price series
 log_futures <- xts(log(data$Close_USD_60kg), order.by = data$Date)
 
-# 2. Split into train and test sets
+# 2. Split into train and test sets using index-based subsetting
 train_end <- as.Date("2014-12-31")
 test_end  <- as.Date("2015-01-10")
 
-train <- window(log_futures, end = train_end)
-test  <- window(log_futures, start = train_end + 1, end = test_end)
+train <- log_futures[index(log_futures) <= train_end]
+test  <- log_futures[index(log_futures) > train_end & index(log_futures) <= test_end]
 
-# 3. Fit ARIMA(0,1,0) model (random walk with drift)
-arima_model <- Arima(train, order = c(0, 1, 0))
+# 3. Fit ARIMA(0,1,0) model WITH drift (random walk with drift)
+arima_model <- Arima(train, order = c(0, 1, 0), include.drift = TRUE)
+
+# 4. Forecast on test horizon
 arima_fc <- forecast(arima_model, h = length(test))
 
-# 4. Convert forecast back to price level
+# 5. Convert forecast back to price level
 fc_prices <- exp(arima_fc$mean)
 fc_xts <- xts(fc_prices, order.by = index(test))
 
-# 5. Align indices of actual and forecast for plotting
-all_dates <- sort(unique(c(index(test), index(fc_xts))))
-test_aligned <- merge(test, xts(, all_dates))
-fc_aligned <- merge(fc_xts, xts(, all_dates))
+# 6. Align dates - intersection only
+common_dates <- intersect(index(test), index(fc_xts))
+if(length(common_dates) == 0) stop("No overlapping dates between test and forecast")
 
-# 6. Plot actual vs forecast
-png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
-plot(exp(test_aligned), main = "Futures Price: Actual vs Forecast (Drift)",
-     col = "blue", lwd = 2, ylab = "Price", xlab = "Date", type = "l")
-lines(fc_aligned, col = "red", lwd = 2, lty = 2)
-legend("topleft", legend = c("Actual", "Forecast with Drift"),
-       col = c("blue", "red"), lty = c(1, 2), lwd = 2)
+test_aligned <- test[common_dates]
+fc_aligned <- fc_xts[common_dates]
+
+if(all(is.na(test_aligned)) || all(is.na(fc_aligned))) stop("Aligned series contain only NA values")
+
+pdf("Processed_Data/graph_8_Forecast_ARIMA.pdf", width = 12, height = 8)  # width/height in inches
+
+tryCatch({
+  plot(plot_dates, actual_prices, type = "l", col = "blue", lwd = 2,
+       main = "Futures Price: Actual vs Forecast (Random Walk with Drift)",
+       ylab = "Price", xlab = "Date")
+  lines(plot_dates, forecast_prices, col = "red", lwd = 2, lty = 2)
+  legend("topleft", legend = c("Actual", "Forecast with Drift"),
+         col = c("blue", "red"), lty = c(1, 2), lwd = 2)
+}, error = function(e) {
+  message("Plot error: ", e$message)
+})
+
 dev.off()
