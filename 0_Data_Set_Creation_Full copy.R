@@ -157,12 +157,12 @@ arabica_simple <- read.csv("Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.
 
 ptax_data <- read.csv("Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv") %>%
   mutate(Date = as.Date(date)) %>%
-  select(Date, PTAX)
+  dplyr::select(Date, PTAX)
 
 weather_data <- read.csv("Raw_Data/Weather_Data/weather.csv") %>%
   mutate(Date = as.Date(Date))
 
-# Merge all
+# Merge all datasets by Date
 merged_data <- ptax_data %>%
   inner_join(coffee_data, by = "Date") %>%
   inner_join(arabica_simple, by = "Date") %>%
@@ -170,8 +170,8 @@ merged_data <- ptax_data %>%
   filter(Date >= as.Date("2001-11-08")) %>%
   arrange(Date)
 
+# Save merged data
 write.csv(merged_data, "Raw_Data/Coffee_Data_Set_test.csv", row.names = FALSE)
-
 
 
 
