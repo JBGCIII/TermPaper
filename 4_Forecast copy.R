@@ -85,11 +85,17 @@ arima_fc <- forecast(arima_model, h = length(test))
 fc_prices <- exp(arima_fc$mean)
 fc_xts <- xts(fc_prices, order.by = index(test))
 
-# 5. Plot ARIMA forecast
-png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
-plot(exp(test), main = "Futures Price: Actual vs Forecast (Drift)",
-     col = "blue", lwd = 2, ylab = "Price", xlab = "Date")
-lines(fc_xts, col = "red", lwd = 2, lty = 2)
-legend("topleft", legend = c("Actual", "Forecast with Drift"),
-       col = c("blue", "red"), lty = c(1, 2), lwd = 2)
-dev.off()
+# Only plot if 'test' and 'fc_xts' have values
+if (!is.null(test) && length(test) > 0 && !any(is.na(test))) {
+  png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
+
+  plot(exp(test), main = "Futures Price: Actual vs Forecast (Drift)",
+       col = "blue", lwd = 2, ylab = "Price", xlab = "Date")
+  lines(fc_xts, col = "red", lwd = 2, lty = 2)
+  legend("topleft", legend = c("Actual", "Forecast with Drift"),
+         col = c("blue", "red"), lty = c(1, 2), lwd = 2)
+
+  dev.off()
+} else {
+  warning("Test data is empty or invalid. Skipping ARIMA plot.")
+}
