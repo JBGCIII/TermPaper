@@ -49,14 +49,12 @@ forecast_log <- last_log_price + cum_log_fc
 forecast_price <- exp(forecast_log)
 
 # 4. Plot forecast
-# Save plot to PNG file
-png("Processed_Data/graph_7_Forecast_VAR.png", width = 1200, height = 800)
-
 forecast_dates <- seq(max(data$Date) + 1, by = "day", length.out = h_forecast)
 forecast_xts <- xts(forecast_price, order.by = forecast_dates)
-
 arabica_xts <- xts(data$Price_Arabica, order.by = data$Date)
 
+# Save plot to PNG file
+png("Processed_Data/graph_7_Forecast_VAR.png", width = 1200, height = 800)
 plot(arabica_xts, xlim = c(end(arabica_xts) - 30, max(forecast_dates)),
      main = "Arabica Spot Price: Actual and Forecast", ylab = "Price",
      col = "black", lwd = 2)
