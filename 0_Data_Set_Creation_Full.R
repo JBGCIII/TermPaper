@@ -116,12 +116,16 @@ weather_full <- get_power(
   community = "AG",
   pars = c("T2M_MAX", "T2M_MIN", "RH2M", "ALLSKY_SFC_SW_DWN", "PRECTOTCORR"),
   dates = c(start_date, end_date),
-  temporal_api = "daily",   # <- This is the correct argument in newer versions
+  temporal_api = "daily",
   lonlat = c(lon, lat)
 )
 
 # Convert to data.frame to avoid class issues
 weather_full <- as.data.frame(weather_full)
+
+# Fix column names: YYYYMMDD → Date
+names(weather_full)[names(weather_full) == "YYYYMMDD"] <- "Date"
+weather_full$Date <- as.Date(weather_full$Date)
 
 # Select and rename relevant columns
 weather_clean <- weather_full %>%
