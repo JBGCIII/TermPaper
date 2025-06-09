@@ -69,25 +69,28 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 ###                               3. Arabica Futures from Yahoo                                        ### 
 ##########################################################################################################
 
-# 1. Get data
+
+# 1. Download Arabica futures data from Yahoo Finance
 start_date <- as.Date("2001-01-01")
 end_date <- as.Date("2025-05-29")
 
 getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
-arabica_xts <- na.omit(`KC=F`)  # Clean missing values
+arabica_xts <- na.omit(`KC=F`)  # Remove rows with NAs
 
-# 2. Convert to data frame
+# 2. Convert xts to data frame
 arabica_df <- data.frame(
   Date = index(arabica_xts),
-  Close = as.numeric(Cl(arabica_xts))
+  Close = as.numeric(Cl(arabica_xts))  # Extract closing price
 )
 
-# 3. Compute only final column and drop "Close"
+# 3. Compute Close_USD_60kg and keep only necessary columns
 arabica_clean <- arabica_df %>%
-  transmute(Date, Close_USD_60kg = Close * 0.01 * 132.277)
+  transmute(Date, Close_USD_60kg = Close * 0.01 * 132.277)  # Convert cents/lb to USD/60kg
 
 # 4. Write to CSV
+dir.create("Raw_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)  # Ensure folder exists
 write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
+
 
 ##########################################################################################################
 ###                               4. Weather Data (NASA)                                               ### 
