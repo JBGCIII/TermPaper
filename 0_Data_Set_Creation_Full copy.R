@@ -98,9 +98,13 @@ write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.cs
 ###                               4. Weather Data (NASA)                                               ### 
 ##########################################################################################################
 
+# Define location and dates
 lon <- -45.43
 lat <- -21.55
+start_date <- as.Date("2001-01-01")
+end_date <- as.Date("2025-05-29")
 
+# Get agricultural community data
 weather_ag <- get_power(
   community = "ag",
   lonlat = c(lon, lat),
@@ -109,6 +113,7 @@ weather_ag <- get_power(
   dates = c(start_date, end_date)
 )
 
+# Get renewable energy community data (precipitation)
 weather_re <- get_power(
   community = "re",
   lonlat = c(lon, lat),
@@ -117,11 +122,18 @@ weather_re <- get_power(
   dates = c(start_date, end_date)
 )
 
+# Join datasets by YEAR, MM, DD
 weather_full <- weather_ag %>%
   inner_join(weather_re, by = c("YEAR", "MM", "DD")) %>%
-  mutate(Date = ymd(paste(YEAR, MM, DD, sep = "-"))) %>%
-  select(Date, T2M_MAX, T2M_MIN, RH2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR) %>%
-  rename(
+  mutate(Date = ymd(paste(YEAR, MM, DD, sep = "-")))
+
+# Convert to data.frame explicitly to avoid method dispatch issues
+weather_full <- as.data.frame(weather_full)
+
+# Select and rename desired columns explicitly using dplyr::select and dplyr::rename
+weather_clean <- weather_full %>%
+  dplyr::select(Date, T2M_MAX, T2M_MIN, RH2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR) %>%
+  dplyr::rename(
     Temp_Max = T2M_MAX,
     Temp_Min = T2M_MIN,
     Humidity = RH2M,
@@ -129,8 +141,8 @@ weather_full <- weather_ag %>%
     Precipitation_mm = PRECTOTCORR
   )
 
-write.csv(weather_full, "Raw_Data/Weather_Data/weather.csv", row.names = FALSE)
-
+# Write cleaned data to CSV
+write.csv(weather_clean, "Raw_Data/Weather_Data/weather.csv", row.names = FALSE)
 
 ##########################################################################################################
 ###                               5. Merge All Datasets                                                ### 
