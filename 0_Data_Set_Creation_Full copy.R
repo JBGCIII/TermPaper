@@ -69,29 +69,25 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 ###                               3. Arabica Futures from Yahoo                                        ### 
 ##########################################################################################################
 
-
-library(quantmod)
-library(dplyr)
-
-start_date <- as.Date("2001-01-01") 
+# 1. Get data
+start_date <- as.Date("2001-01-01")
 end_date <- as.Date("2025-05-29")
 
 getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
-arabica_xts <- `KC=F`
+arabica_xts <- na.omit(`KC=F`)  # Clean missing values
 
-# Convert xts to dataframe first:
+# 2. Convert to data frame
 arabica_df <- data.frame(
   Date = index(arabica_xts),
   Close = as.numeric(Cl(arabica_xts))
 )
 
-# Now use mutate safely
-arabica_df <- arabica_df %>%
-  mutate(Close_USD_60kg = Close * 0.01 * 132.277) %>%
-  select(Date, Close_USD_60kg)
+# 3. Compute only final column and drop "Close"
+arabica_clean <- arabica_df %>%
+  transmute(Date, Close_USD_60kg = Close * 0.01 * 132.277)
 
-
-write.csv(arabica_df, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
+# 4. Write to CSV
+write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
 
 ##########################################################################################################
 ###                               4. Weather Data (NASA)                                               ### 
