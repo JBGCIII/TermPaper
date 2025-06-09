@@ -103,12 +103,27 @@ write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.cs
 # Ensure the parent directory exists
 dir.create("Raw_Data/Weather_Data", recursive = TRUE, showWarnings = FALSE)
 
-# ... your existing code fetching and processing weather_full ...
+# Define the location (longitude and latitude) — example: Minas Gerais, Brazil
+lon <- -45.43
+lat <- -21.55
 
-# Explicitly convert to data.frame to avoid any class issues
+# Define date range
+start_date <- as.Date("2001-11-08")
+end_date <- as.Date("2025-05-29")
+
+# Retrieve weather data using nasapower
+weather_full <- get_power(
+  community = "AG",  # Agricultural data
+  pars = c("T2M_MAX", "T2M_MIN", "RH2M", "ALLSKY_SFC_SW_DWN", "PRECTOTCORR"),
+  dates = c(start_date, end_date),
+  temporal_average = "DAILY",
+  lonlat = c(lon, lat)
+)
+
+# Convert to data.frame to avoid class issues
 weather_full <- as.data.frame(weather_full)
 
-# Select and rename
+# Select and rename relevant columns
 weather_clean <- weather_full %>%
   dplyr::select(Date, T2M_MAX, T2M_MIN, RH2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR) %>%
   dplyr::rename(
@@ -119,13 +134,12 @@ weather_clean <- weather_full %>%
     Precipitation_mm = PRECTOTCORR
   )
 
-print(getwd())  # Check current directory
+# Write to CSV
+print(getwd())
 print("Attempting to write CSV...")
-dir.create("Raw_Data/Weather_Data", recursive = TRUE, showWarnings = FALSE)  # Just in case
 
 write.csv(weather_clean, "Raw_Data/Weather_Data/weather.csv", row.names = FALSE)
 print("CSV file written.")
-
 ##########################################################################################################
 ###                               5. Merge All Datasets                                                ### 
 ##########################################################################################################
