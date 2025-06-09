@@ -69,16 +69,30 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 ###                               3. Arabica Futures from Yahoo                                        ### 
 ##########################################################################################################
 
-# Load libraries explicitly
-library(dplyr)
-library(quantmod)
+# Define dates
+start_date <- as.Date("2001-01-01")
+end_date <- as.Date("2025-05-29")
 
-# Avoid warning from getSymbols
+# Download KC=F futures, suppress warnings about missing data
 suppressWarnings(getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE))
 
-# Sample dplyr usage (fixes 'select' error)
-your_data <- your_data %>%
-  dplyr::select(Date, T2M_MAX, T2M_MIN, RH2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR)
+# Convert to data.frame
+arabica_df <- data.frame(
+  Date = index(`KC=F`),
+  Close = as.numeric(Cl(`KC=F`))
+)
+
+# Add Close_USD_60kg column *without* using select() separately
+arabica_df$Close_USD_60kg <- arabica_df$Close * 0.01 * 132.277
+
+# Keep only Date and Close_USD_60kg in a new data frame (base R subsetting)
+arabica_clean <- arabica_df[, c("Date", "Close_USD_60kg")]
+
+# Create directory if it doesn't exist
+dir.create("Raw_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
+
+# Write CSV
+write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
 
 ##########################################################################################################
 ###                               4. Weather Data (NASA)                                               ### 
