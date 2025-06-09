@@ -80,14 +80,16 @@ getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign 
 
 arabica_xts <- na.omit(`KC=F`)
 
+# Convert xts to dataframe first:
 arabica_df <- data.frame(
   Date = index(arabica_xts),
   Close = as.numeric(Cl(arabica_xts))
 )
 
+# Now use mutate safely
 arabica_df <- arabica_df %>%
-  mutate(Close_USD_60kg = Close * 0.01 * 132.277) %>%
-  select(Date, Close_USD_60kg)  # Select only the needed columns
+  mutate(Close_USD_60kg = Close * 0.01 * 132.277)
+
 
 write.csv(arabica_df, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
 
