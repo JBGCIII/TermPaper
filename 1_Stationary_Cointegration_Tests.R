@@ -21,13 +21,13 @@ robusta_spot_xts <- xts(coffee_data$Price_Robusta, order.by = coffee_data$Date)
 arabica_futures_xts <- xts(coffee_data$Close_USD_60kg, order.by = coffee_data$Date)
 usd_real_exchange_xts <- xts(coffee_data$PTAX, order.by = coffee_data$Date)
 
-# 3. Merge series on common dates
-# Merge the four xts objects with inner join on common dates
-data_xts <- merge(arabica_spot_xts, robusta_spot_xts, arabica_futures_xts, usd_real_exchange_xts, join = "inner")
+# Pairwise merge using join = "inner"
+temp1 <- merge(arabica_spot_xts, robusta_spot_xts, join = "inner")
+temp2 <- merge(temp1, arabica_futures_xts, join = "inner")
+data_xts <- merge(temp2, usd_real_exchange_xts, join = "inner")
 
 # Rename columns
 colnames(data_xts) <- c("arabica_spot_price", "robusta_spot_price", "arabica_futures_price", "usd_real_exchange")
-
 
 ##########################################################################################################
 ###                               1. Unit Root Test                                                    ### 
