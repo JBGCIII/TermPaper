@@ -55,14 +55,6 @@ arabica_xts <- xts(data$Price_Arabica, order.by = data$Date)
 
 # Save plot to PNG file
 png("Processed_Data/graph_7_Forecast_VAR.png", width = 1200, height = 800)
-plot(arabica_xts, xlim = c(end(arabica_xts) - 30, max(forecast_dates)),
-     main = "Arabica Spot Price: Actual and Forecast", ylab = "Price",
-     col = "black", lwd = 2)
-lines(forecast_xts, col = "blue", lwd = 2, lty = 2)
-legend("topleft", legend = c("Actual", "Forecast"), col = c("black", "blue"),
-       lty = c(1, 2), lwd = 2)
-
-# 5. Plot individual forecasts
 par(mfrow = c(3, 1))
 plot(forecast_dates, var_fc$fcst$arabica[,1], type = "l", col = "blue", lwd = 2,
      main = "Forecast: Arabica", ylab = "Log Diff", xlab = "Date"); grid()
