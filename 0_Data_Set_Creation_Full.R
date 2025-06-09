@@ -103,20 +103,20 @@ write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.cs
 # Ensure the parent directory exists
 dir.create("Raw_Data/Weather_Data", recursive = TRUE, showWarnings = FALSE)
 
-# Define the location (longitude and latitude) — example: Minas Gerais, Brazil
+# Define the location (longitude and latitude)
 lon <- -45.43
 lat <- -21.55
 
 # Define date range
-start_date <- as.Date("2001-11-08")
-end_date <- as.Date("2025-05-29")
+start_date <- "2001-11-08"
+end_date <- "2025-05-29"
 
 # Retrieve weather data using nasapower
 weather_full <- get_power(
-  community = "AG",  # Agricultural data
+  community = "AG",
   pars = c("T2M_MAX", "T2M_MIN", "RH2M", "ALLSKY_SFC_SW_DWN", "PRECTOTCORR"),
   dates = c(start_date, end_date),
-  temporal_average = "DAILY",
+  temporal_api = "daily",   # <- This is the correct argument in newer versions
   lonlat = c(lon, lat)
 )
 
@@ -140,6 +140,7 @@ print("Attempting to write CSV...")
 
 write.csv(weather_clean, "Raw_Data/Weather_Data/weather.csv", row.names = FALSE)
 print("CSV file written.")
+
 ##########################################################################################################
 ###                               5. Merge All Datasets                                                ### 
 ##########################################################################################################
