@@ -31,6 +31,8 @@ colnames(data_xts) <- c("arabica_spot_price", "robusta_spot_price", "arabica_fut
 
 ##########################################################################################################
 ###                               1. Unit Root Test                                                    ### 
+# [The entire code from 34 to 117 provides with the results of Table 1:ADF]
+
 
 # 1. Unit root tests – Spot Price Arabica
 summary(ur.df(arabica_spot_xts, type = "none", selectlags = "AIC")) 
@@ -117,7 +119,7 @@ summary(ur.df(diff_log_exchange_rates, type = "trend", selectlags = "AIC"))
 ##########################################################################################################
 ###                                           KPSS TEST                                                ### 
 ##########################################################################################################
-
+# [Provides with the results of Table 2:Kpps]
 # 1.KPPS
 summary(ur.kpss(arabica_spot_xts))
 summary(ur.kpss(robusta_spot_xts))
