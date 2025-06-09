@@ -70,21 +70,26 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 ##########################################################################################################
 
 
-start_date <- as.Date("2001-01-01")
+library(quantmod)
+library(dplyr)
+
+start_date <- as.Date("2001-01-01") 
 end_date <- as.Date("2025-05-29")
 
 getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
-arabica_xts <- `KC=F`
-arabica_xts <- na.omit(arabica_xts)
+
+arabica_xts <- na.omit(`KC=F`)
 
 arabica_df <- data.frame(
   Date = index(arabica_xts),
   Close = as.numeric(Cl(arabica_xts))
 )
-arabica_df$Close_USD_60kg <- arabica_df$Close * 0.01 * 132.277
-arabica_simple <- arabica_df[, c("Date", "Close_USD_60kg")]
 
-write.csv(arabica_simple, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
+arabica_df <- arabica_df %>%
+  mutate(Close_USD_60kg = Close * 0.01 * 132.277) %>%
+  select(Date, Close_USD_60kg)  # Select only the needed columns
+
+write.csv(arabica_df, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
 
 ##########################################################################################################
 ###                               4. Weather Data (NASA)                                               ### 
