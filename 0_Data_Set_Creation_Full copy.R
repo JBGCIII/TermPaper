@@ -69,43 +69,39 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 ###                               3. Arabica Futures from Yahoo                                        ### 
 ##########################################################################################################
 
-# Set date range
+# Define dates
 start_date <- as.Date("2001-01-01")
 end_date <- as.Date("2025-05-29")
 
-# Download data from Yahoo Finance
-getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
+# Download KC=F futures, suppress warnings about missing data
+suppressWarnings(getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE))
 
-# Extract the data (xts object)
-arabica_xts <- `KC=F`
-
-# Remove rows with any missing values (NAs)
-arabica_xts_clean <- na.omit(arabica_xts)
-
-# Convert to data.frame and calculate Close price in USD per 60kg
+# Convert to data.frame
 arabica_df <- data.frame(
-  Date = index(arabica_xts_clean),
-  Close = as.numeric(Cl(arabica_xts_clean))
+  Date = index(`KC=F`),
+  Close = as.numeric(Cl(`KC=F`))
 )
 
-# Convert Close price: Yahoo price is per lb, convert to per 60kg (1 lb ≈ 0.453592 kg)
-# So multiply by 0.453592 to get per kg, then times 60 to get per 60kg
-arabica_df <- arabica_df %>%
-  mutate(Close_USD_60kg = Close * 0.453592 * 60)
+# Add Close_USD_60kg column *without* using select() separately
+arabica_df$Close_USD_60kg <- arabica_df$Close * 0.01 * 132.277
 
-# Keep only Date and converted price
-arabica_simple <- arabica_df %>% select(Date, Close_USD_60kg)
+# Keep only Date and Close_USD_60kg in a new data frame (base R subsetting)
+arabica_clean <- arabica_df[, c("Date", "Close_USD_60kg")]
 
 # Create directory if it doesn't exist
 dir.create("Raw_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
 
-# Save to CSV
-write.csv(arabica_simple, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
-
+# Write CSV
+write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
 
 ##########################################################################################################
 ###                               4. Weather Data (NASA)                                               ### 
 ##########################################################################################################
+
+
+# Create directory if it doesn't exist
+dir.create("Raw_Data/Weather_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
+
 
 # Define location and dates
 lon <- -45.43
