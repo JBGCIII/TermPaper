@@ -76,17 +76,17 @@ library(forecast)
 # 1. Create log-level futures price series
 log_futures <- xts(log(data$Close_USD_60kg), order.by = data$Date)
 
-# 2. Split into train and test sets using index-based subsetting
+# 2. Split into train and test sets
 train_end <- as.Date("2014-12-31")
 test_end  <- as.Date("2015-01-10")
 
 train <- log_futures[index(log_futures) <= train_end]
 test  <- log_futures[index(log_futures) > train_end & index(log_futures) <= test_end]
 
-# 3. Fit ARIMA(0,1,0) model WITH drift (random walk with drift)
-arima_model <- Arima(train, order = c(0, 1, 0), include.drift = TRUE)
+# 3. Fit ARIMA(0,1,0) model (random walk without drift)
+arima_model <- Arima(train, order = c(0, 1, 0), include.drift = FALSE)
 
-# 4. Forecast on test horizon
+# 4. Forecast for the length of the test set
 arima_fc <- forecast(arima_model, h = length(test))
 
 # 5. Convert forecast back to price level
@@ -95,21 +95,26 @@ fc_xts <- xts(fc_prices, order.by = index(test))
 
 # 6. Align dates - intersection only
 common_dates <- intersect(index(test), index(fc_xts))
-if(length(common_dates) == 0) stop("No overlapping dates between test and forecast")
 
-test_aligned <- test[common_dates]
-fc_aligned <- fc_xts[common_dates]
+# Extract data to plot
+actual_prices <- as.numeric(exp(test[common_dates]))
+forecast_prices <- as.numeric(fc_xts[common_dates])
+plot_dates <- common_dates
 
-if(all(is.na(test_aligned)) || all(is.na(fc_aligned))) stop("Aligned series contain only NA values")
+# Debug prints
+print(paste("Actual prices:", paste(round(actual_prices, 2), collapse = ", ")))
+print(paste("Forecast prices:", paste(round(forecast_prices, 2), collapse = ", ")))
+print(paste("Common dates:", paste(as.character(plot_dates), collapse = ", ")))
 
-pdf("Processed_Data/graph_8_Forecast_ARIMA.pdf", width = 12, height = 8)  # width/height in inches
+# 7. Plot and save as PDF (you can change to PNG if you want)
+pdf("Processed_Data/graph_8_Forecast_ARIMA.pdf", width = 12, height = 8)
 
 tryCatch({
   plot(plot_dates, actual_prices, type = "l", col = "blue", lwd = 2,
-       main = "Futures Price: Actual vs Forecast (Random Walk with Drift)",
+       main = "Futures Price: Actual vs Forecast (Random Walk no Drift)",
        ylab = "Price", xlab = "Date")
   lines(plot_dates, forecast_prices, col = "red", lwd = 2, lty = 2)
-  legend("topleft", legend = c("Actual", "Forecast with Drift"),
+  legend("topleft", legend = c("Actual", "Forecast"),
          col = c("blue", "red"), lty = c(1, 2), lwd = 2)
 }, error = function(e) {
   message("Plot error: ", e$message)
