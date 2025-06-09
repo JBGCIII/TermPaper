@@ -98,44 +98,15 @@ write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.cs
 ###                               4. Weather Data (NASA)                                               ### 
 ##########################################################################################################
 
+# Ensure the parent directory exists
+dir.create("Raw_Data/Weather_Data", recursive = TRUE, showWarnings = FALSE)
 
-# Create directory if it doesn't exist
-dir.create("Raw_Data/Weather_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
+# ... your existing code fetching and processing weather_full ...
 
-
-# Define location and dates
-lon <- -45.43
-lat <- -21.55
-start_date <- as.Date("2001-01-01")
-end_date <- as.Date("2025-05-29")
-
-# Get agricultural community data
-weather_ag <- get_power(
-  community = "ag",
-  lonlat = c(lon, lat),
-  pars = c("T2M_MAX", "T2M_MIN", "RH2M", "ALLSKY_SFC_SW_DWN"),
-  temporal_api = "DAILY",
-  dates = c(start_date, end_date)
-)
-
-# Get renewable energy community data (precipitation)
-weather_re <- get_power(
-  community = "re",
-  lonlat = c(lon, lat),
-  pars = c("PRECTOTCORR"),
-  temporal_api = "DAILY",
-  dates = c(start_date, end_date)
-)
-
-# Join datasets by YEAR, MM, DD
-weather_full <- weather_ag %>%
-  inner_join(weather_re, by = c("YEAR", "MM", "DD")) %>%
-  mutate(Date = ymd(paste(YEAR, MM, DD, sep = "-")))
-
-# Convert to data.frame explicitly to avoid method dispatch issues
+# Explicitly convert to data.frame to avoid any class issues
 weather_full <- as.data.frame(weather_full)
 
-# Select and rename desired columns explicitly using dplyr::select and dplyr::rename
+# Select and rename
 weather_clean <- weather_full %>%
   dplyr::select(Date, T2M_MAX, T2M_MIN, RH2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR) %>%
   dplyr::rename(
@@ -146,8 +117,12 @@ weather_clean <- weather_full %>%
     Precipitation_mm = PRECTOTCORR
   )
 
-# Write cleaned data to CSV
+print(getwd())  # Check current directory
+print("Attempting to write CSV...")
+dir.create("Raw_Data/Weather_Data", recursive = TRUE, showWarnings = FALSE)  # Just in case
+
 write.csv(weather_clean, "Raw_Data/Weather_Data/weather.csv", row.names = FALSE)
+print("CSV file written.")
 
 ##########################################################################################################
 ###                               5. Merge All Datasets                                                ### 
