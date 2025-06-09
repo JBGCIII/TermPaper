@@ -39,7 +39,7 @@ diff_log_usd_real_exchange <- na.omit(diff(log(usd_real_exchange_xts)))
 
 
 # Save PNG
-png("Processed_Data/graph_1_coffee_prices_with_futures.png", width = 1200, height = 600)
+png("Processed_Data/graph_7_Forecast_VAR.png", width = 1200, height = 600)
 
 # Plot
 plot.zoo(
