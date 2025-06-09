@@ -3,7 +3,7 @@
 ##########################################################################################################
 
 # Load or install required packages
-required_packages <- c("readxl", "dplyr", "lubridate", "rbcb", "nasapower", "quantmod")
+required_packages <- c("readxl", "dplyr", "lubridate", "rbcb", "nasapower", "quantmod", "zoo","xts" )
 
 installed <- required_packages %in% installed.packages()
 if (any(!installed)) {
@@ -69,51 +69,49 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 ###                               3. Arabica Futures from Yahoo                                        ### 
 ##########################################################################################################
 
-
+# Define dates
 start_date <- as.Date("2001-01-01")
 end_date <- as.Date("2025-05-29")
 
-getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
-arabica_xts <- `KC=F`
-arabica_xts <- na.omit(arabica_xts)
+# Download KC=F futures, suppress warnings about missing data
+suppressWarnings(getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE))
 
+# Convert to data.frame
 arabica_df <- data.frame(
-  Date = index(arabica_xts),
-  Close = as.numeric(Cl(arabica_xts))
+  Date = index(`KC=F`),
+  Close = as.numeric(Cl(`KC=F`))
 )
-arabica_df$Close_USD_60kg <- arabica_df$Close * 0.01 * 132.277
-arabica_simple <- arabica_df[, c("Date", "Close_USD_60kg")]
 
-write.csv(arabica_simple, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
+# Add Close_USD_60kg column *without* using select() separately
+arabica_df$Close_USD_60kg <- arabica_df$Close * 0.01 * 132.277
+
+# Keep only Date and Close_USD_60kg in a new data frame (base R subsetting)
+arabica_clean <- arabica_df[, c("Date", "Close_USD_60kg")]
+
+arabica_clean <- na.omit(arabica_clean)
+
+# Create directory if it doesn't exist
+dir.create("Raw_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
+
+# Write CSV
+write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
 
 ##########################################################################################################
 ###                               4. Weather Data (NASA)                                               ### 
 ##########################################################################################################
 
-lon <- -45.43
-lat <- -21.55
+# Ensure the parent directory exists
+dir.create("Raw_Data/Weather_Data", recursive = TRUE, showWarnings = FALSE)
 
-weather_ag <- get_power(
-  community = "ag",
-  lonlat = c(lon, lat),
-  pars = c("T2M_MAX", "T2M_MIN", "RH2M", "ALLSKY_SFC_SW_DWN"),
-  temporal_api = "DAILY",
-  dates = c(start_date, end_date)
-)
+# ... your existing code fetching and processing weather_full ...
 
-weather_re <- get_power(
-  community = "re",
-  lonlat = c(lon, lat),
-  pars = c("PRECTOTCORR"),
-  temporal_api = "DAILY",
-  dates = c(start_date, end_date)
-)
+# Explicitly convert to data.frame to avoid any class issues
+weather_full <- as.data.frame(weather_full)
 
-weather_full <- weather_ag %>%
-  inner_join(weather_re, by = c("YEAR", "MM", "DD")) %>%
-  mutate(Date = ymd(paste(YEAR, MM, DD, sep = "-"))) %>%
-  select(Date, T2M_MAX, T2M_MIN, RH2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR) %>%
-  rename(
+# Select and rename
+weather_clean <- weather_full %>%
+  dplyr::select(Date, T2M_MAX, T2M_MIN, RH2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR) %>%
+  dplyr::rename(
     Temp_Max = T2M_MAX,
     Temp_Min = T2M_MIN,
     Humidity = RH2M,
@@ -121,8 +119,12 @@ weather_full <- weather_ag %>%
     Precipitation_mm = PRECTOTCORR
   )
 
-write.csv(weather_full, "Raw_Data/Weather_Data/weather.csv", row.names = FALSE)
+print(getwd())  # Check current directory
+print("Attempting to write CSV...")
+dir.create("Raw_Data/Weather_Data", recursive = TRUE, showWarnings = FALSE)  # Just in case
 
+write.csv(weather_clean, "Raw_Data/Weather_Data/weather.csv", row.names = FALSE)
+print("CSV file written.")
 
 ##########################################################################################################
 ###                               5. Merge All Datasets                                                ### 
@@ -137,12 +139,12 @@ arabica_simple <- read.csv("Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.
 
 ptax_data <- read.csv("Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv") %>%
   mutate(Date = as.Date(date)) %>%
-  select(Date, PTAX)
+  dplyr::select(Date, PTAX)
 
 weather_data <- read.csv("Raw_Data/Weather_Data/weather.csv") %>%
   mutate(Date = as.Date(Date))
 
-# Merge all
+# Merge all datasets by Date
 merged_data <- ptax_data %>%
   inner_join(coffee_data, by = "Date") %>%
   inner_join(arabica_simple, by = "Date") %>%
@@ -150,8 +152,8 @@ merged_data <- ptax_data %>%
   filter(Date >= as.Date("2001-11-08")) %>%
   arrange(Date)
 
+# Save merged data
 write.csv(merged_data, "Raw_Data/Coffee_Data_Set.csv", row.names = FALSE)
-
 
 
 
