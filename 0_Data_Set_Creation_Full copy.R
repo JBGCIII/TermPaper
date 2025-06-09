@@ -77,7 +77,7 @@ start_date <- as.Date("2001-01-01")
 end_date <- as.Date("2025-05-29")
 
 getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
-arabica_xts <- na.omit(`KC=F`)
+arabica_xts <- `KC=F`
 
 # Convert xts to dataframe first:
 arabica_df <- data.frame(
@@ -87,8 +87,8 @@ arabica_df <- data.frame(
 
 # Now use mutate safely
 arabica_df <- arabica_df %>%
-  mutate(Close_USD_60kg = Close * 0.01 * 132.277)%>%
-  select(Date, Close_USD_60kg) 
+  mutate(Close_USD_60kg = Close * 0.01 * 132.277) %>%
+  select(Date, Close_USD_60kg)
 
 
 write.csv(arabica_df, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
