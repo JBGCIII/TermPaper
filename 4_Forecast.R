@@ -70,7 +70,6 @@ dev.off()
 ##########################################################################################################
 ###                               2. ARIMA                                                             ### 
 
-png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
 
 # 1. ARIMA forecast (white noise model)
 log_futures <- log(xts(data$Close_USD_60kg, order.by = data$Date))
@@ -85,7 +84,9 @@ arima_fc <- forecast(arima_model, h = length(test))
 fc_prices <- exp(arima_fc$mean)
 fc_xts <- xts(fc_prices, order.by = index(test))
 
+
 # 2 Plot ARIMA forecast
+png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
 plot(exp(test), main = "Futures Price: Actual vs Forecast (Drift)",
      col = "blue", lwd = 2, ylab = "Price", xlab = "Date")
 lines(fc_xts, col = "red", lwd = 2, lty = 2)
