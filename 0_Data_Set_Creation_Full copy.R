@@ -69,25 +69,28 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 ###                               3. Arabica Futures from Yahoo                                        ### 
 ##########################################################################################################
 
-
-# 1. Download Arabica futures data
+# Set date range
 start_date <- as.Date("2001-01-01")
 end_date <- as.Date("2025-05-29")
 
+# Get Arabica futures data from Yahoo Finance
 getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
 
-# 2. Convert to data.frame immediately
+# Convert to a regular data frame
 arabica_df <- data.frame(
   Date = index(`KC=F`),
   Close = as.numeric(Cl(`KC=F`))
 )
 
-# 3. Remove NAs and compute Close_USD_60kg
+# Convert to USD/60kg and keep only necessary columns
 arabica_clean <- arabica_df %>%
-  transmute(Date, Close_USD_60kg = Close * 0.01 * 132.277)
+  mutate(Close_USD_60kg = Close * 0.01 * 132.277) %>%
+  select(Date, Close_USD_60kg)  # dplyr::select avoids base R conflict
 
-# 4. Save to CSV
+# Create directory if it doesn't exist
 dir.create("Raw_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
+
+# Write to CSV
 write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
 
 ##########################################################################################################
