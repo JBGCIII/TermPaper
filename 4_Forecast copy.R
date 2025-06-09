@@ -67,35 +67,42 @@ dev.off()
 ###                               2. ARIMA
 #############################################################################
 
-# 1. Create log-level futures price series
-log_futures <- xts(log(data$Close_USD_60kg), order.by = data$Date)
 
-# 2. Split into train and test sets
+############################################################################
+#                               2. ARIMA
+############################################################################
+
+# 1. Define train/test period
 train_end <- as.Date("2014-12-31")
 test_end  <- as.Date("2015-01-10")
 
-train <- window(log_futures, end = train_end)
-test  <- window(log_futures, start = train_end + 1, end = test_end)
+# Prepare log futures series
+log_futures <- xts(log(data$Close_USD_60kg), order.by = data$Date)
 
-# 3. Fit ARIMA(0,1,0) model (random walk with drift)
-arima_model <- Arima(train, order = c(0, 1, 0))
-arima_fc <- forecast(arima_model, h = length(test))
+# Check if test period exists in data
+if (max(index(log_futures)) >= test_end) {
+  train <- window(log_futures, end = train_end)
+  test  <- window(log_futures, start = train_end + 1, end = test_end)
 
-# 4. Convert forecast back to price level
-fc_prices <- exp(arima_fc$mean)
-fc_xts <- xts(fc_prices, order.by = index(test))
+  # 2. Fit ARIMA(0,1,0) model and forecast
+  arima_model <- Arima(train, order = c(0, 1, 0))
+  arima_fc <- forecast(arima_model, h = length(test))
+  fc_prices <- exp(arima_fc$mean)
+  fc_xts <- xts(fc_prices, order.by = index(test))
 
-# Only plot if 'test' and 'fc_xts' have values
-if (!is.null(test) && length(test) > 0 && !any(is.na(test))) {
-  png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
+  # 3. Plot ARIMA forecast
+  if (length(test) > 0 && length(fc_xts) > 0 && all(!is.na(test)) && all(!is.na(fc_xts))) {
+    png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
+    plot(exp(test), main = "Futures Price: Actual vs Forecast (Drift)",
+         col = "blue", lwd = 2, ylab = "Price", xlab = "Date")
+    lines(fc_xts, col = "red", lwd = 2, lty = 2)
+    legend("topleft", legend = c("Actual", "Forecast with Drift"),
+           col = c("blue", "red"), lty = c(1, 2), lwd = 2)
+    dev.off()
+  } else {
+    warning("Test data or forecast is invalid. Skipping ARIMA plot.")
+  }
 
-  plot(exp(test), main = "Futures Price: Actual vs Forecast (Drift)",
-       col = "blue", lwd = 2, ylab = "Price", xlab = "Date")
-  lines(fc_xts, col = "red", lwd = 2, lty = 2)
-  legend("topleft", legend = c("Actual", "Forecast with Drift"),
-         col = c("blue", "red"), lty = c(1, 2), lwd = 2)
-
-  dev.off()
 } else {
-  warning("Test data is empty or invalid. Skipping ARIMA plot.")
+  warning("Test period exceeds data range. Adjust 'test_end' or check dataset.")
 }
