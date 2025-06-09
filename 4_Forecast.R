@@ -84,20 +84,8 @@ arima_fc <- forecast(arima_model, h = length(test))
 fc_prices <- exp(arima_fc$mean)
 fc_xts <- xts(fc_prices, order.by = index(test))
 
-png("Processed_Data/graph_7_Forecast_VAR.png", width = 1200, height = 800)
-par(mfrow = c(3, 1))
-plot(forecast_dates, var_fc$fcst$arabica[,1], type = "l", col = "blue", lwd = 2,
-     main = "Forecast: Arabica", ylab = "Log Diff", xlab = "Date"); grid()
-plot(forecast_dates, var_fc$fcst$robusta[,1], type = "l", col = "red", lwd = 2,
-     main = "Forecast: Robusta", ylab = "Log Diff", xlab = "Date"); grid()
-plot(forecast_dates, var_fc$fcst$usd_brl[,1], type = "l", col = "darkgreen", lwd = 2,
-     main = "Forecast: USD/BRL", ylab = "Log Diff", xlab = "Date"); grid()
-dev.off()
-
-
 # 2 Plot ARIMA forecast
 png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
-
 plot(exp(test), main = "Futures Price: Actual vs Forecast (Drift)",
      col = "blue", lwd = 2, ylab = "Price", xlab = "Date")
 lines(fc_xts, col = "red", lwd = 2, lty = 2)
