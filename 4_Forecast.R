@@ -33,8 +33,6 @@ colnames(data_ts) <- c("arabica", "robusta", "futures", "usd_brl")
 ##########################################################################################################
 ###                               1. VAR                                                               ### 
 
-# Save plot to PNG file
-png("Processed_Data/graph_7_Forecast_VAR.png", width = 1200, height = 800)
 
 # 1. Fit VAR model
 lag_opt <- VARselect(data_ts, lag.max = 10, type = "const")$selection["AIC(n)"]
@@ -50,7 +48,10 @@ cum_log_fc <- cumsum(var_fc$fcst$arabica[,1])
 forecast_log <- last_log_price + cum_log_fc
 forecast_price <- exp(forecast_log)
 
-# 4. Plot actual vs forecast
+# 4. Plot forecast
+# Save plot to PNG file
+png("Processed_Data/graph_7_Forecast_VAR.png", width = 1200, height = 800)
+
 forecast_dates <- seq(max(data$Date) + 1, by = "day", length.out = h_forecast)
 forecast_xts <- xts(forecast_price, order.by = forecast_dates)
 
