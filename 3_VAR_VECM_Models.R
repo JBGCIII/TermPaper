@@ -111,7 +111,7 @@ IRF_exchange_robusta <- irf(model_var,
 
 
 
-pdf("Processed_Data/IRF_plots.pdf", width = 8, height = 8)
+pdf("Processed_Data/graph_6_IRF_plots.pdf", width = 8, height = 8)
 
 par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
 

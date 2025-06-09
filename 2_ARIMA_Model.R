@@ -34,7 +34,7 @@ diff_log_futures_price_arabica <- na.omit(diff(log(arabica_futures_xts)))
 
 
 #ACF PLOT
-png("Processed_Data/acf_plot_spot_price.png", width = 800, height = 600)
+png("Processed_Data/graph_3_acf_plot_spot_price.png", width = 800, height = 600)
 acf(diff_log_spot_price_arabica, main = "ACF Plot Spot Price Arabica")
 legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
        fill = c("blue", "grey"), border = NA, bty = "n")
@@ -74,7 +74,7 @@ summary(arima_spot_price_log_diff_AR)
 ###                               2. ARIMA ARABICA FUTURE PRICE                                          ### 
 
 #ACF PLOT
-png("Processed_Data/acf_plot_future_price.png", width = 800, height = 600)
+png("Processed_Data/graph_4_acf_plot_future_price.png", width = 800, height = 600)
 acf(diff_log_spot_price_arabica, main = "ACF Plot Futures Price Arabica")
 legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
        fill = c("blue", "grey"), border = NA, bty = "n")
@@ -126,7 +126,7 @@ dates <- coffee_data$Date  # e.g., a Date class vector of length 5400 I did this
 dates_spot <- tail(dates, length(arima_spot_price_log_diff_white_noise$residuals))
 dates_future <- tail(dates, length(arima_future_price_log_diff_white_noise$residuals))
 
-png("Processed_Data/Residual_Plots.png", width = 800, height = 600)
+png("Processed_Data/graph_5_Residual_Plots.png", width = 800, height = 600)
 par(mfrow = c(2, 4))  # 2x4 layout
 
 # Plot Spot residuals vs dates
