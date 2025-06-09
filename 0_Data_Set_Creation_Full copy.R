@@ -3,7 +3,7 @@
 ##########################################################################################################
 
 # Load or install required packages
-required_packages <- c("readxl", "dplyr", "lubridate", "rbcb", "nasapower", "quantmod")
+required_packages <- c("readxl", "dplyr", "lubridate", "rbcb", "nasapower", "quantmod", "zoo","xts" )
 
 installed <- required_packages %in% installed.packages()
 if (any(!installed)) {
@@ -69,30 +69,39 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 ###                               3. Arabica Futures from Yahoo                                        ### 
 ##########################################################################################################
 
-# Define dates
+# Set date range
 start_date <- as.Date("2001-01-01")
 end_date <- as.Date("2025-05-29")
 
-# Download KC=F futures, suppress warnings about missing data
-suppressWarnings(getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE))
+# Download data from Yahoo Finance
+getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
 
-# Convert to data.frame
+# Extract the data (xts object)
+arabica_xts <- `KC=F`
+
+# Remove rows with any missing values (NAs)
+arabica_xts_clean <- na.omit(arabica_xts)
+
+# Convert to data.frame and calculate Close price in USD per 60kg
 arabica_df <- data.frame(
-  Date = index(`KC=F`),
-  Close = as.numeric(Cl(`KC=F`))
+  Date = index(arabica_xts_clean),
+  Close = as.numeric(Cl(arabica_xts_clean))
 )
 
-# Add Close_USD_60kg column *without* using select() separately
-arabica_df$Close_USD_60kg <- arabica_df$Close * 0.01 * 132.277
+# Convert Close price: Yahoo price is per lb, convert to per 60kg (1 lb ≈ 0.453592 kg)
+# So multiply by 0.453592 to get per kg, then times 60 to get per 60kg
+arabica_df <- arabica_df %>%
+  mutate(Close_USD_60kg = Close * 0.453592 * 60)
 
-# Keep only Date and Close_USD_60kg in a new data frame (base R subsetting)
-arabica_clean <- arabica_df[, c("Date", "Close_USD_60kg")]
+# Keep only Date and converted price
+arabica_simple <- arabica_df %>% select(Date, Close_USD_60kg)
 
 # Create directory if it doesn't exist
 dir.create("Raw_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
 
-# Write CSV
-write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
+# Save to CSV
+write.csv(arabica_simple, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
+
 
 ##########################################################################################################
 ###                               4. Weather Data (NASA)                                               ### 
