@@ -83,7 +83,8 @@ arabica_df <- data.frame(
 )
 
 # 3. Remove NAs and compute Close_USD_60kg
-transmute(Date, Close_USD_60kg = Close * 0.01 * 132.277)
+arabica_clean <- arabica_df %>%
+  transmute(Date, Close_USD_60kg = Close * 0.01 * 132.277)
 
 # 4. Save to CSV
 dir.create("Raw_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
