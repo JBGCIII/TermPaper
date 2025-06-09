@@ -43,7 +43,7 @@ plot.zoo(
   lwd = 0.5,
   ylab = "Price (USD/60kg)",
   xlab = "Date",
-  main = "Arabica, Robusta, and Arabica Futures Prices"
+  main = "Graph 01: Arabica, Robusta, and Arabica Futures Prices"
 )
 
 # Add legend
@@ -60,9 +60,9 @@ dev.off()
 
 
 # Calculate log returns
-arabica_log_returns <- diff(log(arabica_spot_price_xts))
-robusta_log_returns <- diff(log(robusta_spot_price_xts))
-arabica_future_log_returns <- diff(log(arabica_future_price_xts))
+arabica_log_returns <- diff(log(arabica_xts))
+robusta_log_returns <- diff(log(robusta_xts))
+arabica_future_log_returns <- diff(log(arabica_futures_xts))
 usd_real_exchange_log_returns <- diff(log(usd_real_exchange_xts))
 
 

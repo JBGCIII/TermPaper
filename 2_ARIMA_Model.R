@@ -42,8 +42,10 @@ dev.off()
 #ACF don’t show significant structure I will conduct ARIMA  
 
 arima_spot_price_log_diff_white_noise <- arima(diff_log_spot_price_arabica, order = c(0,0,0), method = "ML")
+arima_spot_price_log_diff_AR <- arima(diff_log_spot_price_arabica, order = c(1,0,0), method = "ML")
 arima_spot_price_log_diff_MA <- arima(diff_log_spot_price_arabica, order = c(0,0,1), method = "ML")
 arima_spot_price_log_diff_ARMA <- arima(diff_log_spot_price_arabica, order = c(1,0,1), method = "ML")
+
 
 summary(arima_spot_price_log_diff_white_noise)
 #Only an intercept term: 0.0004
@@ -63,9 +65,11 @@ summary(arima_spot_price_log_diff_ARMA)
 #RMSE: 0.0196, MAE: 0.0146
 #Residuals ACF1: 0.0074
 
+summary(arima_spot_price_log_diff_AR)
+
+
 #Conclusion: Although the AIC is slightly improved over MA(1), the standard errors are large, meaning 
 #parameter estimates are not precise, a white noise seems better.
-
 ##########################################################################################################
 ###                               2. ARIMA ARABICA FUTURE PRICE                                          ### 
 
@@ -78,6 +82,7 @@ dev.off()
 # Indicates sm
 
 arima_future_price_log_diff_white_noise  <- arima(diff_log_futures_price_arabica, order = c(0,0,0), method = "ML")
+arima_future_price_log_diff_AR <- arima(diff_log_futures_price_arabica, order = c(1,0,0), method = "ML")
 arima_future_price_log_diff_MA  <- arima(diff_log_futures_price_arabica, order = c(0,0,1), method = "ML")
 arima_future_price_log_diff_ARMA <- arima(diff_log_futures_price_arabica, order = c(1,0,1), method = "ML")
 
@@ -99,6 +104,8 @@ summary(arima_future_price_log_diff_ARMA)
 #AIC: -27436.34 (worst of all three models)
 #RMSE/MAE: Identical to others
 #Residual ACF1: ~0
+
+summary(arima_future_price_log_diff_AR) 
 
 #Adding a MA(1) term does not improve the model, and might be unnecessary complexity. NaNs in standard 
 #errors suggest model overfitting / collinearity / numerical issues in the ARMA model.

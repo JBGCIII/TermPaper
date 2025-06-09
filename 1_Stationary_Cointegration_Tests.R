@@ -32,8 +32,6 @@ colnames(data_xts) <- c("arabica_spot_price", "robusta_spot_price", "arabica_fut
 ##########################################################################################################
 ###                               1. Unit Root Test                                                    ### 
 
-#Useful if you want a more parsimonious model, especially with large samples.
-
 # 1. Unit root tests – Spot Price Arabica
 summary(ur.df(arabica_spot_xts, type = "none", selectlags = "AIC")) 
 summary(ur.df(arabica_spot_xts, type = "drift", selectlags = "AIC")) 

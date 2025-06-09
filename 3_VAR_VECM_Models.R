@@ -53,7 +53,12 @@ summary(model_var)
 #of Brazilian coffee exports. Since Brazil is a major coffee exporter, 
 #this can push up coffee prices globally.
 
+summary(model_var)
+
+
 serial.test(model_var, lags.pt = 3) #No degrees of freedom — test isn’t valid here
+serial.test(model_var, lags.pt = 3, type = "BG") # Therefore I used a  Breusch-Godfrey LM test indicating the
+# residuals does not show significant autocorrelation — ableit marginally (0.06075)
 serial.test(model_var, lags.pt = 4) #No evidence of serial correlation at lag 4
 serial.test(model_var, lags.pt = 7) #Slight evidence, borderline insignificant serial correlation
 serial.test(model_var, lags.pt = 10) #Significant serial correlation at lag 10
@@ -78,14 +83,15 @@ IRF_arabica_robusta <- irf(model_var,
                            impulse = "diff_log_spot_price_arabica", 
                            response = "diff_log_spot_price_robusta", 
                            ortho = TRUE, 
-                           boot = FALSE)
+                            boot = TRUE, ci = 0.95)
+
 
 # IRF: effect of robusta shock on arabica
 IRF_robusta_arabica <- irf(model_var, 
                            impulse = "diff_log_spot_price_robusta", 
                            response = "diff_log_spot_price_arabica", 
                            ortho = TRUE, 
-                           boot = FALSE)
+                           boot = TRUE, ci = 0.95)
 
 
 # IRF: effect of exhange rate shock on arabica
@@ -93,7 +99,7 @@ IRF_exchange_arabica <- irf(model_var,
                            impulse = "diff_log_usd_real_exchange", 
                            response = "diff_log_spot_price_arabica", 
                            ortho = TRUE, 
-                           boot = FALSE)
+                           boot = TRUE, ci = 0.95)
 
 
 # IRF: effect of exhange rate shock on arabica
@@ -101,7 +107,7 @@ IRF_exchange_robusta <- irf(model_var,
                            impulse = "diff_log_usd_real_exchange", 
                            response = "diff_log_spot_price_robusta", 
                            ortho = TRUE, 
-                           boot = FALSE)
+                           boot = TRUE, ci = 0.95)
 
 
 
@@ -123,9 +129,6 @@ dev.off()
 ##########################################################################################################
 ###                               2. VECM                                                              ### 
 
-
-
-# Assuming you have time series: arabica_spot and arabica_futures
 # Combine into a matrix or dataframe
 data_vecm <- cbind(arabica_spot_xts, arabica_futures_xts)
 
