@@ -73,24 +73,22 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 start_date <- as.Date("2001-01-01")
 end_date <- as.Date("2025-05-29")
 
-# Get Arabica futures data from Yahoo Finance
+# Get Arabica futures data
 getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
 
-# Convert to a regular data frame
+# Convert to data frame
 arabica_df <- data.frame(
   Date = index(`KC=F`),
   Close = as.numeric(Cl(`KC=F`))
 )
 
-# Convert to USD/60kg and keep only necessary columns
+# Add converted price and select only needed columns
 arabica_clean <- arabica_df %>%
   mutate(Close_USD_60kg = Close * 0.01 * 132.277) %>%
-  select(Date, Close_USD_60kg)  # dplyr::select avoids base R conflict
+  dplyr::select(Date, Close_USD_60kg)
 
-# Create directory if it doesn't exist
+# Save as CSV
 dir.create("Raw_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
-
-# Write to CSV
 write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
 
 ##########################################################################################################
