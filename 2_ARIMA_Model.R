@@ -28,6 +28,9 @@ colnames(data_xts) <- c("arabica_spot_price", "arabica_futures_price")
 diff_log_spot_price_arabica <- na.omit(diff(log(arabica_spot_xts)))
 diff_log_futures_price_arabica <- na.omit(diff(log(arabica_futures_xts)))
 
+dir.create("Processed_Data", recursive = TRUE, showWarnings = FALSE)
+
+
 
 ##########################################################################################################
 ###                               1. ARIMA ARABICA SPOT PRICE                                          ### 
