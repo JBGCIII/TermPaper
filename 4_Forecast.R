@@ -84,6 +84,7 @@ arima_fc <- forecast(arima_model, h = length(test))
 fc_prices <- exp(arima_fc$mean)
 fc_xts <- xts(fc_prices, order.by = index(test))
 
+
 # 2 Plot ARIMA forecast
 png("Processed_Data/graph_8_Forecast_ARIMA.png", width = 1200, height = 800)
 plot(exp(test), main = "Futures Price: Actual vs Forecast (Drift)",
