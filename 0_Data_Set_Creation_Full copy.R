@@ -69,27 +69,16 @@ write.csv(ptax_data, "Raw_Data/Exchange_Rate/USD_BRL_Exchange_Rate.csv", row.nam
 ###                               3. Arabica Futures from Yahoo                                        ### 
 ##########################################################################################################
 
-# Set date range
-start_date <- as.Date("2001-01-01")
-end_date <- as.Date("2025-05-29")
+# Load libraries explicitly
+library(dplyr)
+library(quantmod)
 
-# Get Arabica futures data
-getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE)
+# Avoid warning from getSymbols
+suppressWarnings(getSymbols("KC=F", src = "yahoo", from = start_date, to = end_date, auto.assign = TRUE))
 
-# Convert to data frame
-arabica_df <- data.frame(
-  Date = index(`KC=F`),
-  Close = as.numeric(Cl(`KC=F`))
-)
-
-# Add converted price and select only needed columns
-arabica_clean <- arabica_df %>%
-  mutate(Close_USD_60kg = Close * 0.01 * 132.277) %>%
-  dplyr::select(Date, Close_USD_60kg)
-
-# Save as CSV
-dir.create("Raw_Data/Coffee_Data", recursive = TRUE, showWarnings = FALSE)
-write.csv(arabica_clean, "Raw_Data/Coffee_Data/Arabica_Futures_Close_USD_60kg.csv", row.names = FALSE)
+# Sample dplyr usage (fixes 'select' error)
+your_data <- your_data %>%
+  dplyr::select(Date, T2M_MAX, T2M_MIN, RH2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR)
 
 ##########################################################################################################
 ###                               4. Weather Data (NASA)                                               ### 
